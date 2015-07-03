@@ -20,3 +20,13 @@ FOSS Cores:
  * Daisho - http://goo.gl/eSwTeb
  * joris_vr - http://jorisvr.nl/usb/
 
+
+USB 2.0 Low-Pin Interface (ULPI) is a low-power/low-pincount version (12 signal
+lines) of the UTMI specification released in 2004. ULPI is designed to work as
+a pair of wrappers around UTMI, one at the "link" end and the other at the
+"PHY" end.
+
+ULPI is primarily aimed at handling the high-speed (480Mbps) analog circuitry
+and presenting an ASIC or FPGA with a parallel 8-bit data stream at 60MHz. The
+ULPI interface will typically interact with Verilog or VHDL code running on the
+ASIC or FPGA.
