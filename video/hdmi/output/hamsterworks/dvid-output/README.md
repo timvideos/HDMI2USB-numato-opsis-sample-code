@@ -2,7 +2,7 @@
 **In Progress**
 
 This is a modified version of
-[Hamsterworks' Minimal HDMI](http://hamsterworks.co.nz/mediawiki/index.php/Minimal_HDMI)
+[Hamsterworks' MiniSpartan6+ DVID Output](http://hamsterworks.co.nz/mediawiki/index.php/MiniSpartan6%2B_DVID_Output)
 to run on the 
 [Opsis board by Numato and TimVideos](http://hdmi2usb.tv/opsis).
 
