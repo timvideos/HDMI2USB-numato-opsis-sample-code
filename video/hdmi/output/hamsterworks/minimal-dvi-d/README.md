@@ -22,3 +22,22 @@ Hamsterworks' Minimal DVI-D
 > By keeping the resolution relatively low, and by using only a carefully
 > selecting subset of TMDS symbols to use, the simplest of interfaces (DVI-D)
 > can be up and running in a couple of pages of VHDL.
+
+Here are two versions of the source. They both implement exactly the same thing
+but in different ways.
+
+* minimalDVID_encoder.vhd
+
+This first uses a couple of 'for loops' and 'for generate' structures to keep
+the code small.
+
+* minimalDVID_encoder_explicit.vhd 
+
+The second is more explicit version, and might be more suited to
+experimentation if you want to do different things on different channels, like
+making an 8-bit (RRRGGGBB) VGA output.
+
+* plumbing.vhd 
+
+Using it is pretty simple - just plumb it in as you would with a standard VGA
+port, and take the TMDS pairs to the outside world.
