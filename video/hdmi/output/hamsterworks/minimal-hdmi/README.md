@@ -18,5 +18,6 @@ Hamsterworks' Minimal HDMI
 > errors. It is here purely for educational purposes, and might be of use to
 > somebody doing a proper job of implementing HDMI.
 
-
+![HDMI-RGB](Hdmi-RGB.jpg)
+![HDMI-YCC](Hdmi-YCC.jpg)
  

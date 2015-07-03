@@ -1,0 +1,292 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- saved from url=(0058)http://hamsterworks.co.nz/mediawiki/index.php/Minimal_HDMI -->
+<html lang="en" dir="ltr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Minimal HDMI - Hamsterworks Wiki!</title>
+<body>
+	<h1 id="firstHeading" class="firstHeading">Minimal HDMI</h1>
+	<h3 id="siteSub">From Hamsterworks Wiki!</h3>
+
+<p>This <a href="http://hamsterworks.co.nz/mediawiki/index.php/FPGA_Projects" title="FPGA Projects">FPGA Project</a> was completed in March 2015.
+</p><p>After completing my <a href="http://hamsterworks.co.nz/mediawiki/index.php/Minimal_DVI-D" title="Minimal DVI-D">Minimal DVI-D</a> project I wanted to get a Minimal HDMI output working. 
+</p><p>Here is the project running in RGB mode (i.e. with a NULL data packet) - Note how the TV now detects it as HDMI (on DVI-D designs it shows "DVI-D"):
+</p><p><a href="http://hamsterworks.co.nz/mediawiki/index.php/File:Hdmi-RGB.jpg" class="image"><img alt="Hdmi-RGB.jpg" src="Hdmi-RGB.jpg" width="477" height="314"></a>
+</p><p>And here is the project, using the same test pattern, but the display is now running in YCC mode (i.e. with the YCC AVI Infoframe in the data packet) - oh and sorry about it being a little washed out in the photo, it is really vibrant in real life...:
+</p><p><a href="http://hamsterworks.co.nz/mediawiki/index.php/File:Hdmi-YCC.jpg" class="image"><img alt="Hdmi-YCC.jpg" src="Hdmi-YCC.jpg" width="485" height="306"></a>
+</p><p><br>
+Please note that these are my notes about implementing a minimally functional HDMI-compatible output stream, and isn't a serious attempt at implementing HDMI. It includes many short cuts and assumptions and most likely a few errors. It is here purely for educational purposes, and might be of use to somebody doing a proper job of implementing HDMI.
+</p>
+
+<h2>So what is different about HDMI compared with DVI-D?</h2>
+<p>HDMI has special blocks called 'data islands' inserted in the data stream. These data islands can carry additional things like metadata about the video stream and audio packets. Each data island is 32 words long, and transfers four header bytes (3 bytes data + 1 byte ECC) and four eight-byte subpackets (7 bytes data, one byte ECC), along with the HSYNC and VSYNC signals. The sync and header is sent on channel 0, and the subpackets are sent on channels 1 and 2.
+</p><p>When placed on the wire, data Islands have a 8-word preamble of standard CTL period codes to announce their immanent arrive, a 2-word leading guard band, followed by one ore more blocks of data Island data, and then another 2-word guard band to close the data island:
+</p>
+<pre> [preamble - 8 cycles] [leading guard band - 2 cycles] [ one or more data blocks - 32 cycles each] [trailing guard bland - 2 cycles] 
+</pre>
+<p>Data islands can be inserted almost anywhere in the video stream that isn't sending video data, as long as there are four 10-bit frames of standard DVI-D-like CTL words before the preamble codes, and another four 10-bit frames of standard DVI-D-like CTL words before the next data island or video preamble.
+</p><p>Video streams are also a little different too. The pixel data is announced with a preamble and leading guard band, but no trailing guard band is used for video data.
+</p>
+<pre> [video preamble 8 cycles] [video guard band - 2 cycles] [pixel data - 800 cycles for 800x600]
+</pre>
+<p>NOTE: The full HDMI specification can be found in many different public places on the web, just by using the appropriate Google-fu. Please don't ask me for it if your Google-fu is weak and you can't find it.
+</p>
+<h2>The NULL data packet</h2>
+<p>The standard allows for a NULL data island, that can be used as padding. The great thing about the NULL data island is all of the payload's bits are zero, including the ECC bits. This makes it a very useful option for when you want to tightly schedule when you send a data island, but may not always be using it (for example, you could have a set of pre-scheduled data islands where audio samples could be packed, or if no sample data is available a null packet could be sent instead.
+</p><p>Any data packet is sent using the TERC4 coding scheme where each HDMI channel sends one of sixteen 10-bit symbols that allows encoding of 4 bits of data. Channel 0 carries a framing bit, a packet header bit, and the HSYNC and VSYNC signals. Channel 1 carries the even bits of the subpackets (bits 0,2,4 and 6), and channel 2 carries the odd bits of the subpackets (bits 1,3,5,7).
+</p>
+<pre>      Channel 0      Channel 1            Channel2
+      MSB   LSB      MSB        LSB       MSB        LSB
+ 0:   0  h0 V H      d0  c0  b0  a0       D1  C1  B1  A1
+ 1:   1  h1 V H      d2  c2  b2  a2       D3  C3  B3  A3
+ 2:   1  h2 V H      d4  c4  b4  a4       D5  C5  B5  A5
+ 3:   1  h3 V H      d6  c6  b6  a6       D6  C7  B7  A7
+...
+31:   1 h31 V H      d62 c62 b62 a62      D63 C63 B63 A63
+
+  h = header bit
+  V = Vertical Sync
+  H = Horizontal Sync
+  A = An odd bit from subpacket 0
+  B = An odd bit from subpacket 1
+  C = An odd bit from subpacket 2
+  D = An odd bit from subpacket 3
+  a = An even bit from subpacket 0
+  b = An even bit from subpacket 1
+  c = An even bit from subpacket 2
+  d = An even bit from subpacket 3
+
+</pre>
+<p>So if transmitted where HSYNC is '0' and VSYNC is '1' a NULL data packet can be sent as follows:
+</p>
+<pre>    TERC4 data:
+    Channel0 Channel1 Channel2
+ 0:   0010     0000      0000
+ 1:   1010     0000      0000
+ 2:   1010     0000      0000
+ 3:   1010     0000      0000
+...
+30:   1010     0000      0000
+31:   1010     0000      0000
+
+</pre>
+<p>Mapping those through to the 10-bit TERC4 symbols, here are the 10-bit patterns that need to be sent (excluding the preamble and guard bands, and once again where HSYNC is '0' and VSYNC is '1' ):
+</p>
+<pre>    TERC4 data:
+     Channel0   Channel1   Channel2
+ 0: 1011100100 1010011100 1010011100
+ 1: 0110011100 1010011100 1010011100
+ 2: 0110011100 1010011100 1010011100
+ 3: 0110011100 1010011100 1010011100
+...
+30: 0110011100 1010011100 1010011100
+31: 0110011100 1010011100 1010011100
+
+</pre>
+<p>The information above, along with the symbols for TMDS symbols for used pixel data, the DVI-D CTL period symbols, the preamble symbols (which are DVI-D CTL symbols) and the guard band symbols is enough to construct a stream of bits that will be recognized as a HDMI signal by most devices - all you need to do is send a NULL data island during the vertical blanking period.
+</p>
+<h2>Building the AVI Infoframe data packet</h2>
+<p>For video data, the main reason to use the more complex HDMI over DVI-D is so you can send data in other colour spaces than RGB, the most useful being YCbCr.
+</p><p>There needs to be a way to tell the HDMI sink what format the data is being sent in, and this is a data island packet called an Auxiliary Video information (AVI) Video Infoframe. As expected, this describes that format and attributes of the pixels that are going over the wire, including the colourspace the data is in.
+</p><p>To send this we need to be able to send something other than a NULL packet, and that involves us running up against the very weakly documented ECC scheme used in HDMI data packets. The scheme used is BCH(32,24) and BCH(64,56), and both methods use the same algorithm but with different ratios of user data to ECC.
+</p><p>The easiest way to show how to do this is to build a packet with pen and paper.
+</p>
+<h3>Building the packet header</h3>
+<p>From the documentation:
+</p>
+<pre> Header Byte 0, Packet Type 0x82, 
+ Header Byte 1, Version x02
+ Header Byte 2, Length 0x0D       
+ Header Byte 3, ECC
+</pre>
+<p>So in Hex, the four byte header looks like this:
+</p>
+<pre> [ECC goes here]0D0282
+</pre>
+<p>Which in binary looks like this:
+</p>
+<pre> MSB                          LSB
+&nbsp;????????000010110000001010000010
+</pre>
+<h3>Computing the ECC</h3>
+<p>The algorithm is really simple.
+</p><p>0. Set an 8-bit register to 0.
+</p><p>Then for each data bit, starting from LSB:
+</p><p>1. XOR the current data bit with the LSB of the 8-bit register. 
+</p><p>2. Shift the register right one bit.
+</p><p>3. If the result of step 1 was  '1' then we XOR with 10000011, otherwise do nothing
+</p><p>And finally 
+</p><p>4. The state of the shift register is the ECC value
+</p><p>Here is the hand-calculated packet header:
+</p>
+<pre>Byte 0:
+        XORed  Shifted   Value to   Updated   
+ Data	with   LFSR      XOr into   Register
+ Bit    LSB    Register  Register   State
++-----+-----+----------+----------+----------
+|  0  |  0  | 00000000 | 00000000 | 00000000
++-----+-----+----------+----------+----------
+|  1  |  0  | 00000000 | 10000011 | 10000011
++-----+-----+----------+----------+----------
+|  0  |  1  | 01000001 | 10000011 | 11000010
++-----+-----+----------+----------+----------
+|  0  |  1  | 01100001 | 00000000 | 01100001
++-----+-----+----------+----------+----------
+|  0  |  0  | 00110000 | 10000011 | 10110011
++-----+-----+----------+----------+----------
+|  0  |  1  | 01011001 | 10000011 | 11011010
++-----+-----+----------+----------+----------
+|  0  |  1  | 01101101 | 00000000 | 01101101
++-----+-----+----------+----------+----------
+|  1  |  1  | 00110110 | 00000000 | 00110110
++-----+-----+----------+----------+----------
+
+Byte 1:
++-----+-----+----------+----------+----------
+|  0  |  1  | 00011011 | 10000011 | 00011011
++-----+-----+----------+----------+----------
+|  1  |  1  | 00001101 | 00000000 | 00001101
++-----+-----+----------+----------+----------
+|  0  |  1  | 00000110 | 10000011 | 10000101
++-----+-----+----------+----------+----------
+|  0  |  1  | 01000010 | 10000011 | 11000001
++-----+-----+----------+----------+----------
+|  0  |  1  | 01100000 | 10000011 | 11100011
++-----+-----+----------+----------+----------
+|  0  |  1  | 01110001 | 10000011 | 11110010
++-----+-----+----------+----------+----------
+|  0  |  0  | 01111001 | 00000000 | 01111001
++-----+-----+----------+----------+----------
+|  0  |  1  | 00111100 | 10000011 | 10111111
++-----+-----+----------+----------+----------
+
+Byte 2:
++-----+-----+----------+----------+----------
+|  1  |  0  | 01011111 | 00000000 | 01011111
++-----+-----+----------+----------+----------
+|  0  |  1  | 00101111 | 10000011 | 10101100
++-----+-----+----------+----------+----------
+|  1  |  1  | 01010110 | 10000011 | 11010101
++-----+-----+----------+----------+----------
+|  1  |  0  | 01101010 | 00000000 | 01101010
++-----+-----+----------+----------+----------
+|  0  |  0  | 00110101 | 00000000 | 00110101
++-----+-----+----------+----------+----------
+|  0  |  1  | 00011010 | 10000011 | 10011001
++-----+-----+----------+----------+----------
+|  0  |  1  | 01001100 | 10000011 | 11001111
++-----+-----+----------+----------+----------
+|  0  |  1  | 01100111 | 10000011 | 11100100
++-----+-----+----------+----------+----------
+
+The ECC is the value of the status register, 11100100
+
+This can now be inserted in the packet header
+to form 
+  MSB                             LSB
+  11100100 00001101 00000010 10000010
+
+</pre>
+<h3>Building the subpacket data</h3>
+<p>As mentioned, the packet includes four data subpackets, each with 7 bytes of user data and one byte of ECC.
+</p><p>For the AVI Video Infoframe, all the non-zero data is in subpacket0, with the other subpackets carrying zeros. That makes it quite easy as once again the ECC for a stream of zeros is zeros.
+</p><p>The calculation of the ECC for the subpackets uses exactly the same algorithm, apart from the data packets being seven bytes long, so isn't worth showing again.
+</p><p>So now we need to build the subpackets:
+</p>
+<pre>Subpacket0:
+  Byte 0 - [Checksum of none-ECC bytes of the data and header bytes]
+  Byte 1 - 01000000 - Bits 5 and 6 Select Video format (RGB (00) vs YCC (10))
+  Byte 2 - 00000000 - Colourspace, aspect ratio and scaling factors
+  Byte 3 - 00000000 - Finer details of the colourspace
+  Byte 4 - 00000000 - Video format VIC - haven't got one for 800x600
+  Byte 5 - 00000000 - Reserved bits and pixel repetition factor
+  Byte 6 - 00000000 - start of bar info fields - can be zeros
+  Byte 7 - [  ECC   ]
+Subpacket1:
+  Byte 0 - 00000000
+  Byte 1 - 00000000
+  Byte 2 - 00000000
+  Byte 3 - 00000000
+  Byte 4 - 00000000
+  Byte 5 - 00000000   - end of bar info fields 
+  Byte 6 - 00000000   - Last byte of AVI infoframe data
+  Byte 7 - [  ECC   ] - As the data is zeros we know this already 00000000
+
+Subpacket2 &amp; Subpacket3 are all zeros.
+
+
+</pre>
+<p>The checksum is selected so that the the checksum and all the data bytes (in both header and subpackets, excluding the ECC bytes) add up to 00000000 - in this case 00101111 is what is required - in this case the header and data are 0x82 + 0x40 + 0xD0 + 0x40  = D1, so the checksum is 0x2F
+</p><p>Here are the four subpackets, including the ECC bytes.
+</p>
+<pre>              MSB                                                                 LSB
+Subpacket 0:  01110001 00000000 00000000 00000000 00000000 00000000 01000000 00101111
+Subpacket 1:  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+Subpacket 2:  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+Subpacket 3:  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+
+</pre>
+<h3>Putting the pieces of the Data Island together</h3>
+<p>Just to recap we have the following data for the packet header and subpackets:
+</p>
+<pre>              MSB                             LSB
+Header:       11100100 00001101 00000010 10000010
+
+              MSB                                                                 LSB
+Subpacket 0:  01110001 00000000 00000000 00000000 00000000 00000000 01000000 00101111
+Subpacket 1:  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+Subpacket 2:  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+Subpacket 3:  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+
+</pre>
+<p>This then needs to be switched into the (somewhat problematic) layout used for conversion to the three channels of 10-bit symbols that are sent (as always assuming VSYNC is asserted and HSYNC is not):
+</p>
+<pre>     Ch0  Ch1  Ch2
+      hVH dcba DCBA
+ 0:  0010 0001 0001
+ 1:  1110 0001 0001
+ 2:  1010 0000 0001
+ 3:  1010 0000 0000
+ 4:  1010 0000 0000
+ 5:  1010 0000 0000
+ 6:  1010 0000 0000
+ 7:  1110 0001 0000
+ 8:  1010 0000 0000
+ 9:  1110 0000 0000
+10:  1010 0000 0000
+11:  1010 0000 0000
+12:  1010 0000 0000
+13:  1010 0000 0000
+14:  1010 0000 0000
+15:  1010 0000 0000
+16:  1110 0000 0000
+17:  1010 0000 0000
+18:  1110 0000 0000
+19:  1110 0000 0000
+20:  1010 0000 0000
+21:  1010 0000 0000
+22:  1010 0000 0000
+23:  1010 0000 0000
+24:  1010 0000 0000
+25:  1010 0000 0000
+26:  1110 0000 0000
+27:  1010 0000 0000
+28:  1010 0001 0000
+29:  1110 0000 0000
+30:  1110 0001 0001
+31;  1110 0001 0000
+
+</pre>
+<p>And there are the nibbles to be encoded and sent during the only data island, which is the AVI Infoframe to switch to YCC 444 mode, as used in my proof of concept project!
+</p>
+<h2>On with the source!</h2>
+<p>So on with the source. It's in 6 parts:
+</p>
+<ol><li> hdmi_output_test.vhd - The top level module tying these three together
+</li><li> vga_gen.vhd - A 800x600 VGA test pattern generator
+</li><li> vga_clocking.vhd - Generating the 40MHz pixel clock from the 50MHz external clock
+</li><li> Minimal_HDMI_Symbols.vhd, which converts the VGA data into three streams of 10-bit symbols. It also inserts a single HDMI data island after the first falling edge of hsync during period when vsync is active.
+</li><li> Serializers.vhd - converts the 10-bit symbols to three serial bitstreams, using DDR registers at clocked at 5x the pixel clock.
+</li><li> miniSpartan6.ucf - The implementation constraints for Scarab Hardware's miniSpartan6+ FPGA board
+</li></ol>
+<p>The full design requires 67 slices, 36 of which are the VGA generator and the other 31 implement the HDMI output.
+</p>
+</body></html>
