@@ -20,4 +20,3 @@ FOSS Cores:
  * Daisho - http://goo.gl/eSwTeb
  * joris_vr - http://jorisvr.nl/usb/
 
-
