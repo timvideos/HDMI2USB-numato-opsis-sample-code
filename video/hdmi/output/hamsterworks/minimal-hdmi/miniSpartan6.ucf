@@ -1,0 +1,20 @@
+#Created by Constraints Editor (xc6slx25-ftg256-3) - 2015/01/02
+NET "clk50" PERIOD = 20 ns | LOC = "K3"; # IO_L42P_GCLK25_TRDY2_M3UDM
+#NET "clk32" PERIOD = 31.25 ns | LOC = "J4"; # IO_L42N_GCLK24_M3LDM_3
+NET "LEDS<0>" LOC="P11";
+NET "LEDS<1>" LOC="N9";
+NET "LEDS<2>" LOC="M9";
+NET "LEDS<3>" LOC="P9";
+NET "LEDS<4>" LOC="T8";
+NET "LEDS<5>" LOC="N8";
+NET "LEDS<6>" LOC="P8";
+NET "LEDS<7>" LOC="P7";
+
+NET "hdmi_out_p<0>" LOC="C13" | IOSTANDARD="TMDS_33"; # IO_L63P_SCP7_0
+NET "hdmi_out_n<0>" LOC="A13" | IOSTANDARD="TMDS_33"; # IO_L63N_SCP6_0
+NET "hdmi_out_p<1>" LOC="B12" | IOSTANDARD="TMDS_33"; # IO_L62P_0
+NET "hdmi_out_n<1>" LOC="A12" | IOSTANDARD="TMDS_33"; # IO_L62N_VREF_0
+NET "hdmi_out_p<2>" LOC="C11" | IOSTANDARD="TMDS_33"; # IO_L39P_0
+NET "hdmi_out_n<2>" LOC="A11" | IOSTANDARD="TMDS_33"; # IO_L39N_0
+NET "hdmi_out_p<3>" LOC="B14" | IOSTANDARD="TMDS_33"; # IO_L65P_SCP3_0
+NET "hdmi_out_n<3>" LOC="A14" | IOSTANDARD="TMDS_33"; # IO_L65N_SCP2_0
