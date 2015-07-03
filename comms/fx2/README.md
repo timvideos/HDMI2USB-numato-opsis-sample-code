@@ -77,3 +77,11 @@ Libraries for working with the Cypress FX2
  * jtag - NeroJTAG compatible firmware from FPGALink
 
 
+More links
+
+ * http://www.linux-usb.org/ezusb/
+ * https://github.com/hansiglaser/ezusb-firmware
+ * http://allmybrain.com/tag/fx2/
+ * http://www.triplespark.net/elec/periph/USB-FX2/
+ * https://fpga4u.epfl.ch/wiki/FX2
+ * http://ixo-jtag.sourceforge.net/
