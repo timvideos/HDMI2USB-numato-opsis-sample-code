@@ -24,9 +24,7 @@ entity dvid_output_test is
     Port ( clk100        : in  STD_LOGIC;
 
            hdmi_out_p : out  STD_LOGIC_VECTOR(3 downto 0);
-           hdmi_out_n : out  STD_LOGIC_VECTOR(3 downto 0);
-                      
-           leds       : out std_logic_vector(7 downto 0));
+           hdmi_out_n : out  STD_LOGIC_VECTOR(3 downto 0));
 end dvid_output_test;
 
 architecture Behavioral of dvid_output_test is
@@ -69,7 +67,6 @@ architecture Behavioral of dvid_output_test is
 	signal vsync   : std_logic;          
 
 begin
-   leds <= x"AA";
    
    ----------------------------------
    -- EDID I2C signals (not implemented)
