@@ -39,21 +39,21 @@ architecture Behavioral of dvid_out_clocking is
    signal clock_x2_unbuffered  : std_logic;
    signal clock_x1_unbuffered  : std_logic;
    signal clk_feedback         : std_logic;
-   signal clk50_buffered       : std_logic;
+   signal clk100_buffered       : std_logic;
    signal pll_locked           : std_logic;
 begin
    clk_x1  <= clock_local_x1;
    clk_x2  <= clock_local_x2;
    clk_x10 <= clock_local_x10;
    
-   -- Multiply clk50m by 10, then :
+   -- Multiply clk100m by 5, then :
    -- * divide by 1 for the bit clock (pixel clock x10)
    -- * divide by 5 for the pixel clock x2 
    -- * divide by 10 for the pixel clock
    -- Because the all come from the same PLL the will all be in phase 
    PLL_BASE_inst : PLL_BASE
    generic map (
-      CLKFBOUT_MULT => 10,                  
+      CLKFBOUT_MULT => 5,                  
       CLKOUT0_DIVIDE => 1,       CLKOUT0_PHASE => 0.0,   -- Output 10x original frequency
       CLKOUT1_DIVIDE => 5,       CLKOUT1_PHASE => 0.0,   -- Output 2x original frequency
       CLKOUT2_DIVIDE => 10,      CLKOUT2_PHASE => 0.0,   -- Output 1x original frequency

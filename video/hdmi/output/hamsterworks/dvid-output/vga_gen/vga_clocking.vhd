@@ -13,7 +13,7 @@ library UNISIM;
 use UNISIM.VComponents.all;
 
 entity vga_clocking is
-    Port ( clk50           : in  STD_LOGIC;
+    Port ( clk100          : in  STD_LOGIC;
            pixel_clock     : out STD_LOGIC);
 end vga_clocking;
 
@@ -21,19 +21,19 @@ architecture Behavioral of vga_clocking is
    signal clock_x1             : std_logic;
    signal clock_x1_unbuffered  : std_logic;
    signal clk_feedback         : std_logic;
-   signal clk50_buffered       : std_logic;
+   signal clk100_buffered      : std_logic;
    signal pll_locked           : std_logic;
 begin
    pixel_clock     <= clock_x1;
    
-   -- Multiply clk50m by 15, then divide by 10 for the 75 MHz pixel clock
+   -- Multiply clk100m by 9, then divide by 12 for the 75 MHz pixel clock
    -- Because the all come from the same PLL the will all be in phase 
    PLL_BASE_inst : PLL_BASE
    generic map (
-      CLKFBOUT_MULT => 15,                  
-      CLKOUT0_DIVIDE => 10,       CLKOUT0_PHASE => 0.0,  -- Output pixel clock, 1.5x original frequency
+      CLKFBOUT_MULT => 9,                  
+      CLKOUT0_DIVIDE => 12,       CLKOUT0_PHASE => 0.0,  -- Output pixel clock, 0.75x original frequency
       CLK_FEEDBACK => "CLKFBOUT",                        -- Clock source to drive CLKFBIN ("CLKFBOUT" or "CLKOUT0")
-      CLKIN_PERIOD => 20.0,                              -- IMPORTANT! 20.00 => 50MHz
+      CLKIN_PERIOD => 10.0,                              -- IMPORTANT! 10.00 => 100MHz
       DIVCLK_DIVIDE => 1                                 -- Division value for all output clocks (1-52)
    )
       port map (
@@ -46,11 +46,11 @@ begin
       CLKOUT5  => open,
       LOCKED   => pll_locked,      
       CLKFBIN  => clk_feedback,    
-      CLKIN    => clk50_buffered, 
+      CLKIN    => clk100_buffered, 
       RST      => '0'              -- 1-bit input: Reset input
    );
 
-BUFG_clk    : BUFG port map ( I => clk50,                O => clk50_buffered);
+BUFG_clk    : BUFG port map ( I => clk100,               O => clk100_buffered);
 BUFG_pclock : BUFG port map ( I => clock_x1_unbuffered,  O => clock_x1);
 
 end Behavioral;

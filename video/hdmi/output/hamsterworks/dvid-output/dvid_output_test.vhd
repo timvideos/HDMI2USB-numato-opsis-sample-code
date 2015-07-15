@@ -21,7 +21,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity dvid_output_test is
-    Port ( clk50         : in  STD_LOGIC;
+    Port ( clk100        : in  STD_LOGIC;
 
            hdmi_out_p : out  STD_LOGIC_VECTOR(3 downto 0);
            hdmi_out_n : out  STD_LOGIC_VECTOR(3 downto 0);
@@ -33,7 +33,7 @@ architecture Behavioral of dvid_output_test is
 
 	COMPONENT vga_gen
 	PORT(
-		clk50           : IN std_logic;          
+		clk100          : IN std_logic;          
 		pixel_clock     : OUT std_logic;
 		red_p           : OUT std_logic_vector(7 downto 0);
 		green_p         : OUT std_logic_vector(7 downto 0);
@@ -81,7 +81,7 @@ begin
 -- Generate a 1280x720 VGA test pattern
 ---------------------------------------
 Inst_vga_gen: vga_gen PORT MAP(
-		clk50 => clk50,
+		clk100 => clk100,
 		pixel_clock     => pixel_clock,      
 		red_p           => red_p,
 		green_p         => green_p,

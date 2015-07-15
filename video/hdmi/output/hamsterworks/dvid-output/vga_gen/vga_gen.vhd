@@ -9,7 +9,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity vga_gen is
-    Port ( clk50           : in  STD_LOGIC;
+    Port ( clk100          : in  STD_LOGIC;
 		     pixel_clock     : out std_logic;
 
            red_p   : out STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
@@ -22,7 +22,7 @@ end vga_gen;
 
 architecture Behavioral of vga_gen is
 	COMPONENT vga_clocking
-	PORT( clk50           : IN  std_logic;          
+	PORT( clk100          : IN  std_logic;          
          pixel_clock     : OUT std_logic);
 	END COMPONENT;
 
@@ -43,7 +43,7 @@ architecture Behavioral of vga_gen is
 begin
 
 Inst_clocking: vga_clocking PORT MAP(
-		clk50           => clk50,
+		clk100          => clk100,
 		pixel_clock     => clk75
 	);
    pixel_clock <= clk75;
