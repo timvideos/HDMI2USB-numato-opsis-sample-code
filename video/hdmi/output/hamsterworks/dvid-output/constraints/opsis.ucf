@@ -1,0 +1,12 @@
+# FXO-HC536R - component U17
+NET "clk100" PERIOD = 10 ns | LOC = "AB13"; # (/FPGA_Bank_1_2/USRCLK)
+
+# HDMI - connector J3 - Direction TX
+NET "hdmi_out_p<0>" LOC= "W12" | IOSTANDARD="TMDS_33"; #  Blue (/HDMI/TMDS-TX1-0_P)
+NET "hdmi_out_n<0>" LOC= "Y12" | IOSTANDARD="TMDS_33"; #       (/HDMI/TMDS-TX1-0_N)
+NET "hdmi_out_p<1>" LOC="AA10" | IOSTANDARD="TMDS_33"; # Green (/HDMI/TMDS-TX1-1_P)
+NET "hdmi_out_n<1>" LOC="AB10" | IOSTANDARD="TMDS_33"; #       (/HDMI/TMDS-TX1-1_N)
+NET "hdmi_out_p<2>" LOC=  "Y9" | IOSTANDARD="TMDS_33"; #   Red (/HDMI/TMDS-TX1-2_P)
+NET "hdmi_out_n<2>" LOC= "AB9" | IOSTANDARD="TMDS_33"; #       (/HDMI/TMDS-TX1-2_N)
+NET "hdmi_out_p<3>" LOC= "Y11" | IOSTANDARD="TMDS_33"; #   CLK (/HDMI/TMDS-TX1-CLK_P)
+NET "hdmi_out_n<3>" LOC="AB11" | IOSTANDARD="TMDS_33"; #       (/HDMI/TMDS-TX1-CLK_N)
