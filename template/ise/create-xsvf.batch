@@ -1,0 +1,6 @@
+setPreference -pref KeepSVF:True
+setMode -bs
+setCable -port xsvf -file opsis.xsvf
+addDevice -p 1 -file opsis.bit
+program -p 1
+quit

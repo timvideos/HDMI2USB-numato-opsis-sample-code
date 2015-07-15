@@ -1,0 +1,2 @@
+NET "switch" LOC = "Y3"  |IOSTANDARD = LVCMOS15; # (/FPGA_Bank_0_3/SWITCH | Net-(R54-Pad2))
+NET "led"    LOC = "AA2" |IOSTANDARD = LVCMOS15; # (/FPGA_Bank_0_3/DEBUG_IO0)
