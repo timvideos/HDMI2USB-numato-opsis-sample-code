@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <report-views version="2.0" >
  <header>
-  <DateModified>2013-07-15T00:51:30</DateModified>
-  <ModuleName>hdmi2usb</ModuleName>
+  <DateModified>2015-07-16T16:40:54</DateModified>
+  <ModuleName>opsis</ModuleName>
   <SummaryTimeStamp>Unknown</SummaryTimeStamp>
-  <SavedFilePath>D:/Dropbox/vWorker/freelancehandover/ise/iseconfig/hdmi2usb.xreport</SavedFilePath>
-  <ImplementationReportsDirectory>D:/Dropbox/vWorker/freelancehandover/ise\</ImplementationReportsDirectory>
+  <SavedFilePath>/home/tansell/foss/timvideos/hdmi2usb/numato-hdmi2usb/sample-code/template/ise/iseconfig/opsis.xreport</SavedFilePath>
+  <ImplementationReportsDirectory>/home/tansell/foss/timvideos/hdmi2usb/numato-hdmi2usb/sample-code/template/ise/</ImplementationReportsDirectory>
   <DateInitialized>2013-07-03T20:19:05</DateInitialized>
   <EnableMessageFiltering>true</EnableMessageFiltering>
  </header>
