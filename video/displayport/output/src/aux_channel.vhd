@@ -126,6 +126,8 @@ architecture arch of aux_channel is
     signal state_on_success : t_state               := error;
     signal pulse_per_second : std_logic             := '0';
 	signal pps_count        : unsigned(26 downto 0) := (9=>'1',others => '0');   
+    signal pulse_per_tenth_second : std_logic             := '0';
+ 	signal ppts_count        : unsigned(26 downto 0) := (9=>'1',others => '0');   
     signal count_100us      : unsigned(14 downto 0) := to_unsigned(1000,15);
     component dp_aux_messages is
 	port ( clk          : in  std_logic;
@@ -235,6 +237,7 @@ clk_proc: process(clK)
 		    -- Are we going to change state this cycle?
 		    -------------------------------------------
             msg_de <= '0';
+             
             if next_state /= state then
                 -------------------------------------------------------------
                 -- Get ready to count how many reply bytes have been received
@@ -568,8 +571,8 @@ clk_proc: process(clK)
             -- If the link was established, then every 
             -- now and then check the state of the link  
             -------------------------------------------------
-            if state = link_established and pulse_per_second = '1' then
-                next_state <= check_link;
+            if state = link_established and pulse_per_tenth_second = '1' then
+                next_state <= check_link;  
             end if;
 
             -------------------------------------------------
@@ -597,6 +600,15 @@ clk_proc: process(clK)
 			  pulse_per_second <= '0';
 			  pps_count        <= pps_count - 1;
 			end if;
+			if ppts_count = 0 then
+			  pulse_per_tenth_second <= '1';
+			  -- PPS actually became a 2Hz pulse....
+			  ppts_count        <= to_unsigned(19999999,27);
+			else
+			  pulse_per_tenth_second  <= '0';
+			  ppts_count        <= ppts_count - 1;
+			end if;
+
 		end if;		
 	end process;
 end architecture;

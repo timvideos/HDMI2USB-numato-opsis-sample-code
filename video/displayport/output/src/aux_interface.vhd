@@ -116,7 +116,7 @@ architecture arch of aux_interface is
     signal data_sr   : std_logic_vector(15 downto 0);
     signal busy_sr   : std_logic_vector(15 downto 0);
     
-	type t_rx_state is (rx_waiting, rx_receiving_data);
+	type t_rx_state is (rx_waiting, rx_receiving_data, rx_done);
     signal rx_state         : t_rx_state := rx_waiting;
     signal rx_fifo          : a_small_buffer;
     signal rx_wr_ptr        : unsigned(4 downto 0) := (others => '0');
@@ -124,6 +124,7 @@ architecture arch of aux_interface is
     signal rx_rd_ptr        : unsigned(4 downto 0) := (others => '0');
 
 
+    signal rx_reset   : std_logic;
     signal rx_empty_i : std_logic := '0';
     signal rx_full    : std_logic := '0';
     signal rx_wr_data : std_logic_vector(7 downto 0) := (others => '0');
@@ -155,6 +156,7 @@ clk_proc: process(clk)
 	begin
 		if rising_edge(clk) then
             tx_rd_en <= '0';
+            rx_reset <= '0';
             
             if bit_counter = bit_counter_max then
                 bit_counter <= (others => '0');            
@@ -197,6 +199,7 @@ clk_proc: process(clk)
                                     data_sr <= "1111000000000000";
                                     busy_sr <= "1111111100000000";
                                     tx_state <= tx_receive_data;
+                                    rx_reset <= '1';
                                     tx_rd_en <= '1';
                                 end if;
                         when tx_receive_data =>
@@ -225,7 +228,7 @@ clk_proc: process(clk)
                 bit_counter <= bit_counter + 1;
             end if;
             
-            -- How the RX inidicates that we can send another transaction;
+            -- How the RX indicates that we can send another transaction;
             if tx_state = tx_waiting and rx_finished = '1' then
                 tx_state <= tx_idle;
             end if;
@@ -244,16 +247,22 @@ clk_proc: process(clk)
 			end if;
             
 		    ---- Managing the RX FIFO 
-		    if rx_full = '0' and rx_wr_en = '1' then
-                rx_fifo(to_integer(rx_wr_ptr)) <= rx_wr_data;
-				rx_wr_ptr <= rx_wr_ptr+1;
+          if rx_reset = '1' then
+            rx_wr_ptr <= rx_rd_ptr;
+          else
+            if rx_full = '0' and rx_wr_en = '1' then
+               rx_fifo(to_integer(rx_wr_ptr)) <= rx_wr_data;
+               rx_wr_ptr <= rx_wr_ptr+1;
+            end if;
+
+
+            if rx_empty_i = '0' and rx_rd_en = '1' then
+               rx_data   <= rx_fifo(to_integer(rx_rd_ptr));
+               rx_rd_ptr <= rx_rd_ptr + 1;
+            end if;
 			end if;
 
-			if rx_empty_i = '0' and rx_rd_en = '1' then
-				rx_data   <= rx_fifo(to_integer(rx_rd_ptr));
-				rx_rd_ptr <= rx_rd_ptr + 1;
-			end if;
-
+        
 			--------------------------
 			-- Manage the timeout
 			--------------------------
@@ -326,15 +335,20 @@ rx_proc: process(clK)
                                 rx_wr_en <= '1';
                             end if;
                         end if;
+                    when rx_done =>
+                        null; -- waiting to be reset (so I ignore noise!)
                     when others =>
                         rx_state <= rx_waiting;
                     end case;
             end if;
-        
             if rx_synced /= rx_last then
                 rx_count <= to_unsigned(25, 6);
             end if;
-        
+            
+            if rx_reset = '1' then
+                rx_state <= rx_waiting;
+            end if;
+
             rx_last   <= rx_synced;
             rx_synced <= rx_meta;
             snoop     <= rx_meta;

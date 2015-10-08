@@ -1,7 +1,7 @@
 ----------------------------------------------------------------------------------
--- Module Name: top_level - Behavioral
+-- Module Name: data_stream_test - Behavioral
 --
--- Description: Top level of my DisplayPort design.
+-- Description: For sumulating the data stream, without the TX modules.
 -- 
 ----------------------------------------------------------------------------------
 -- FPGA_DisplayPort from https://github.com/hamsternz/FPGA_DisplayPort
@@ -53,49 +53,14 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity top_level is
+entity data_stream_test is
     port ( 
-        gclk                : in    std_logic;        
-        gclk27              : in    std_logic;        
-        g22                 : out   std_logic := '1';
-        debug               : out   std_logic_vector(1 downto 0) := (others => '0');
-        ------------------------------
-        refclk0_p           : in    STD_LOGIC;
-        refclk0_n           : in    STD_LOGIC;
-        refclk1_p           : in    STD_LOGIC;
-        refclk1_n           : in    STD_LOGIC;
-        refclk2_p           : in    STD_LOGIC;
-        refclk2_n           : in    STD_LOGIC;
-        refclk3_p           : in    STD_LOGIC;
-        refclk3_n           : in    STD_LOGIC;
-        lnk_j8_lane_p       : out   std_logic_vector(3 downto 0);
-        lnk_j8_lane_n       : out   std_logic_vector(3 downto 0);    
-        ------------------------------
-        hpd_j8              : in    std_logic;
-        aux_j8_aux_tx_p : inout std_logic;
-        aux_j8_aux_tx_n : inout std_logic;
-        aux_j8_aux_rx_p : inout std_logic;
-        aux_j8_aux_rx_n : inout std_logic
+        symbolclk           : in    STD_LOGIC;
+        symbols             : out   std_logic_vector(79 downto 0)
     );
-end top_level;
+end data_stream_test;
 
-architecture Behavioral of top_level is
-    component hotplug_decode is
-        port (clk     : in  std_logic;
-              hpd     : in  std_logic;
-              irq     : out std_logic := '0';
-              present : out std_logic := '0');
-    end component;
-
-    component test_source is
-        port ( 
-            clk          : in  std_logic;
-            ready        : out std_logic;
-            data         : out std_logic_vector(72 downto 0)
-        );
-    end component;
-    
-    
+architecture Behavioral of data_stream_test is    
     component test_source_800_600_RGB_444_ch1 is
         port ( 
             -----------------------------------------------------
@@ -300,166 +265,6 @@ architecture Behavioral of top_level is
         );
     end component;
 
-    component link_signal_mgmt is
-        Port ( mgmt_clk    : in  STD_LOGIC;
-
-               tx_powerup  : in  STD_LOGIC;  -- Used to reset
-            
-               status_de   : in  std_logic;
-               adjust_de   : in  std_logic;
-               addr        : in  std_logic_vector(7 downto 0);
-	  	       data        : in  std_logic_vector(7 downto 0);
-
-               sink_channel_count   : in  std_logic_vector(2 downto 0);
-               source_channel_count : in  std_logic_vector(2 downto 0);
-               stream_channel_count : in  std_logic_vector(2 downto 0);
-               active_channel_count : out std_logic_vector(2 downto 0);
-
-               powerup_channel : out std_logic_vector(3 downto 0);
-
-               clock_locked   : out STD_LOGIC;
-               equ_locked     : out STD_LOGIC;
-               symbol_locked  : out STD_LOGIC;
-               align_locked   : out STD_LOGIC;
-        
-               preemp_0p0  : out STD_LOGIC;
-               preemp_3p5  : out STD_LOGIC;
-               preemp_6p0  : out STD_LOGIC;
-        
-               swing_0p4   : out STD_LOGIC;
-               swing_0p6   : out STD_LOGIC;
-               swing_0p8   : out STD_LOGIC);
-    end component;
-    
-    component Transceiver is
-    Port ( mgmt_clk        : in  STD_LOGIC;
-           powerup_channel : in  STD_LOGIC_vector;
-           debug           : out std_logic_vector(7 downto 0);
-
-           gclk27          : in  STD_LOGIC;
-
-           preemp_0p0      : in  STD_LOGIC;
-           preemp_3p5      : in  STD_LOGIC;
-           preemp_6p0      : in  STD_LOGIC;
-           
-           swing_0p4       : in  STD_LOGIC;
-           swing_0p6       : in  STD_LOGIC;
-           swing_0p8       : in  STD_LOGIC;
-
-           tx_running      : out STD_LOGIC_vector;
-
-
-           refclk0_p       : in  STD_LOGIC;
-           refclk0_n       : in  STD_LOGIC;
-           refclk1_p       : in  STD_LOGIC;
-           refclk1_n       : in  STD_LOGIC;
-           refclk2_p       : in  STD_LOGIC;
-           refclk2_n       : in  STD_LOGIC;
-           refclk3_p       : in  STD_LOGIC;
-           refclk3_n       : in  STD_LOGIC;
-
-           symbolclk      : out STD_LOGIC;
-           
-           in_symbols     : in  std_logic_vector(79 downto 0);
-
-           gtptxp         : out std_logic_vector(3 downto 0);
-           gtptxn         : out std_logic_vector(3 downto 0));
-    end component;
-
-    component aux_channel is
-		port ( 
-		   clk                 : in    std_logic;
-		   debug_pmod          : out   std_logic_vector(7 downto 0);
-		   ------------------------------
-           edid_de             : out   std_logic;
-           dp_reg_de           : out   std_logic;
-           adjust_de           : out   std_logic;
-           status_de           : out   std_logic;
-           aux_addr            : out   std_logic_vector(7 downto 0);
-		   aux_data            : out   std_logic_vector(7 downto 0);
-		   ------------------------------
-           link_count          : in    std_logic_vector(2 downto 0);           
-		   ------------------------------
-		   -- Hot plug signals
-           hpd_irq             : in std_logic;
-           hpd_present         : in std_logic;
-
-		   ------------------------------
-		   swing_0p4           : in    std_logic;
-           swing_0p6           : in    std_logic;
-           swing_0p8           : in    std_logic;
-           preemp_0p0          : in    STD_LOGIC;
-           preemp_3p5          : in    STD_LOGIC;
-           preemp_6p0          : in    STD_LOGIC;
-           clock_locked        : in    STD_LOGIC;
-           equ_locked          : in    STD_LOGIC;
-           symbol_locked       : in    STD_LOGIC;
-           align_locked        : in    STD_LOGIC;
-		   ------------------------------
-           tx_powerup          : out   std_logic := '0';
-           tx_clock_train      : out   std_logic := '0';
-           tx_align_train      : out   std_logic := '0';
-           tx_link_established : out   std_logic := '0';
-		   ------------------------------
-		   dp_tx_hp_detect : in    std_logic;
-           dp_tx_aux_p     : inout std_logic;
-           dp_tx_aux_n     : inout std_logic;
-           dp_rx_aux_p     : inout std_logic;
-           dp_rx_aux_n     : inout std_logic
-		);
-    end component;
-
-    component edid_decode is
-       port ( clk              : in std_logic;
-    
-              edid_de          : in std_logic;
-              edid_data        : in std_logic_vector(7 downto 0);
-              edid_addr        : in std_logic_vector(7 downto 0);
-              invalidate       : in std_logic;
-    
-              valid            : out std_logic := '0';
-    
-              support_RGB444   : out std_logic := '0';
-              support_YCC444   : out std_logic := '0';
-              support_YCC422   : out std_logic := '0';
-    
-              pixel_clock_x10k : out std_logic_vector(15 downto 0) := (others => '0');
-    
-              h_visible_len    : out std_logic_vector(11 downto 0) := (others => '0');
-              h_blank_len      : out std_logic_vector(11 downto 0) := (others => '0');
-              h_front_len      : out std_logic_vector(11 downto 0) := (others => '0');
-              h_sync_len       : out std_logic_vector(11 downto 0) := (others => '0');
-    
-              v_visible_len    : out std_logic_vector(11 downto 0) := (others => '0');
-              v_blank_len      : out std_logic_vector(11 downto 0) := (others => '0');
-              v_front_len      : out std_logic_vector(11 downto 0) := (others => '0');
-              v_sync_len       : out std_logic_vector(11 downto 0) := (others => '0');
-              interlaced       : out std_logic := '0');
-    end component;
-
-    component dp_register_decode is
-       port ( clk         : in std_logic;
-    
-              de          : in std_logic;
-              data        : in std_logic_vector(7 downto 0);
-              addr        : in std_logic_vector(7 downto 0);
-              invalidate  : in std_logic;
-    
-              valid              : out std_logic := '0';
-     
-              revision           : out std_logic_vector(7 downto 0) := (others => '0');
-              link_rate_2_70     : out std_logic := '0';
-              link_rate_1_62     : out std_logic := '0';
-              extended_framing   : out std_logic := '0';
-              link_count         : out std_logic_vector(3 downto 0) := (others => '0');
-              max_downspread     : out std_logic_vector(7 downto 0) := (others => '0');
-              coding_supported   : out std_logic_vector(7 downto 0) := (others => '0');
-              port0_capabilities : out std_logic_vector(15 downto 0) := (others => '0');
-              port1_capabilities : out std_logic_vector(15 downto 0) := (others => '0');
-              norp               : out std_logic_vector(7 downto 0) := (others => '0')
-        );
-    end component;
-
     component training_and_channel_delay is
     port (
         clk                : in  std_logic;
@@ -474,31 +279,6 @@ architecture Behavioral of top_level is
     );
     end component;
 
-    component video_generator is
-    Port (  clk              : in  STD_LOGIC;
-            h_visible_len    : in  std_logic_vector(11 downto 0) := (others => '0');
-            h_blank_len      : in  std_logic_vector(11 downto 0) := (others => '0');
-            h_front_len      : in  std_logic_vector(11 downto 0) := (others => '0');
-            h_sync_len       : in  std_logic_vector(11 downto 0) := (others => '0');
-            
-            v_visible_len    : in  std_logic_vector(11 downto 0) := (others => '0');
-            v_blank_len      : in  std_logic_vector(11 downto 0) := (others => '0');
-            v_front_len      : in  std_logic_vector(11 downto 0) := (others => '0');
-            v_sync_len       : in  std_logic_vector(11 downto 0) := (others => '0');
-            
-            vid_blank        : out STD_LOGIC;
-            vid_hsync        : out STD_LOGIC;
-            vid_vsync        : out STD_LOGIC);
-    end component;
-
-    signal edid_de          : std_logic;
-    signal dp_reg_de        : std_logic;
-    signal adjust_de        : std_logic;
-    signal status_de        : std_logic;
-    signal aux_data         : std_logic_vector(7 downto 0);
-    signal aux_addr         : std_logic_vector(7 downto 0);
-    signal invalidate       : std_logic;
-    
     
     signal support_RGB444   : std_logic := '0';
     signal support_YCC444   : std_logic := '0';
@@ -540,33 +320,7 @@ architecture Behavioral of top_level is
     signal tx_align_train   : std_logic := '0';    
     signal data_channel_0   : std_logic_vector(19 downto 0):= (others => '0');
 
-    ---------------------------------------------
-    -- Transceiver signals
-    ---------------------------------------------
-    signal txresetdone      : std_logic := '0';
-    signal txoutclk         : std_logic := '0';
-    signal symbolclk        : std_logic := '0';
-    
-    signal tx_running       : std_logic_vector(3 downto 0) := (others => '0');
-
-    signal powerup_channel : std_logic_vector(3 downto 0);
-    signal clock_locked    : std_logic := '0';
-    signal equ_locked      : std_logic := '0';
-    signal symbol_locked   : std_logic := '0';
-    signal align_locked    : std_logic := '0';
-    
-    signal preemp_0p0      : std_logic := '1';
-    signal preemp_3p5      : STD_LOGIC := '0';
-    signal preemp_6p0      : STD_LOGIC := '0';
-           
-    signal swing_0p4       : STD_LOGIC := '1';
-    signal swing_0p6       : STD_LOGIC := '0';
-    signal swing_0p8       : STD_LOGIC := '0';
-
     ------------------------------------------------
-    signal tx_link_established : std_logic := '0';
-    ------------------------------------------------
-    signal interface_debug : std_logic_vector(7 downto 0);
     signal tx_debug        : std_logic_vector(7 downto 0);
    
     signal sink_channel_count   : std_logic_vector(2 downto 0) := "000";
@@ -586,7 +340,6 @@ architecture Behavioral of top_level is
     signal scrambled_data      : std_logic_vector(71 downto 0) := (others => '0');
     signal final_data          : std_logic_vector(71 downto 0) := (others => '0');
     signal force_parity_neg    : std_logic_vector( 7 downto 0) := (others => '0');
-    signal symbols             : std_logic_vector(79 downto 0) := (others => '0');
     
     signal hpd_irq     : std_logic;
     signal hpd_present : std_logic;
@@ -600,129 +353,6 @@ architecture Behavioral of top_level is
 
 begin
     sink_channel_count <= dp_link_count(2 downto 0);
-
-i_hotplug_decode: hotplug_decode port map (
-        clk     => gclk,
-        hpd     => hpd_j8,
-        irq     => hpd_irq,
-        present => hpd_present);
-
-i_aux_channel: aux_channel port map ( 
-		   clk             => gclk,
-		   debug_pmod      => interface_debug,
-		   ------------------------------
-         edid_de         => edid_de,
-         dp_reg_de       => dp_reg_de,
-         adjust_de       => adjust_de,
-         status_de       => status_de,
-         aux_addr        => aux_addr,
-		   aux_data        => aux_data,
-		   ------------------------------
-		   link_count      => active_channel_count,
-         hpd_irq         => hpd_irq,
-         hpd_present     => hpd_present,
-		   ------------------------------
-         preemp_0p0      => preemp_0p0, 
-         preemp_3p5      => preemp_3p5,
-         preemp_6p0      => preemp_6p0,           
-         swing_0p4       => swing_0p4,
-         swing_0p6       => swing_0p6,
-         swing_0p8       => swing_0p8,
-          
-         clock_locked    => clock_locked,
-         equ_locked      => equ_locked,
-         symbol_locked   => symbol_locked,
-         align_locked    => align_locked,
-           
-		   ------------------------------
-           tx_powerup          => tx_powerup,
-           tx_clock_train      => tx_clock_train,
-           tx_align_train      => tx_align_train,
-           tx_link_established => tx_link_established,
-		   ------------------------------
-		     dp_tx_hp_detect => hpd_j8,
-           dp_tx_aux_p     => aux_j8_aux_tx_p,
-           dp_tx_aux_n     => aux_j8_aux_tx_n,
-           dp_rx_aux_p     => aux_j8_aux_rx_p,
-           dp_rx_aux_n     => aux_j8_aux_rx_n
-		);
-
-
-i_edid_decode: edid_decode port map ( 
-           clk              => gclk,    
-           edid_de          => edid_de,
-           edid_addr        => aux_addr,
-           edid_data        => aux_data,
-           invalidate       => '0',
-    
-           valid            => edid_valid,
-    
-           support_RGB444   => support_RGB444,
-           support_YCC444   => support_YCC444,
-           support_YCC422   => support_YCC422,
-    
-           pixel_clock_x10k => pixel_clock_x10k,
-    
-           h_visible_len    => h_visible_len,
-           h_blank_len      => h_blank_len,
-           h_front_len      => h_front_len,
-           h_sync_len       => h_sync_len,
-    
-           v_visible_len    => v_visible_len,
-           v_blank_len      => v_blank_len,
-           v_front_len      => v_front_len,
-           v_sync_len       => v_sync_len,
-           interlaced       => interlaced);
-
-i_dp_reg_decode: dp_register_decode port map ( 
-            clk                => gclk,
-            de                 => dp_reg_de,
-            addr               => aux_addr,
-            data               => aux_data,
-            invalidate         => '0',
-            valid              => dp_valid,
-            
-            revision           => dp_revision,
-            link_rate_2_70     => dp_link_rate_2_70,
-            link_rate_1_62     => dp_link_rate_1_62,
-            extended_framing   => dp_extended_framing,
-            link_count         => dp_link_count,
-            max_downspread     => dp_max_downspread,
-            coding_supported   => dp_coding_supported,
-            port0_capabilities => dp_port0_capabilities,
-            port1_capabilities => dp_port1_capabilities,
-            norp               => dp_norp
-       );
-
-i_link_signal_mgmt:  link_signal_mgmt Port map (
-        mgmt_clk        => gclk,
-
-        tx_powerup      => tx_powerup, 
-        
-        status_de       => status_de,
-        adjust_de       => adjust_de,
-        addr            => aux_addr,
-        data            => aux_data,
-
-        sink_channel_count   => sink_channel_count,
-        source_channel_count => source_channel_count,
-        active_channel_count => active_channel_count,
-        stream_channel_count => stream_channel_count,
-
-        powerup_channel => powerup_channel,
-
-        clock_locked    => clock_locked,
-        equ_locked      => equ_locked,
-        symbol_locked   => symbol_locked,
-        align_locked    => align_locked,
-
-        preemp_0p0      => preemp_0p0, 
-        preemp_3p5      => preemp_3p5,
-        preemp_6p0      => preemp_6p0,
-            
-        swing_0p4       => swing_0p4,
-        swing_0p6       => swing_0p6,
-        swing_0p8       => swing_0p8);
 
 i_test_source: test_source_800_600_RGB_444_ch1  port map ( 
 --i_test_source: test_source_3840_2160_YCC_422_ch2  port map ( 
@@ -798,7 +428,7 @@ i_insert_main_stream_attrbutes_one_channel: insert_main_stream_attrbutes_one_cha
 
 i_idle_pattern_inserter: idle_pattern_inserter  port map ( 
             clk              => symbolclk,
-            channel_ready    => tx_link_established,
+            channel_ready    => '1',
             source_ready     => test_signal_ready,
             
             in_data          => msa_merged_data,
@@ -812,7 +442,7 @@ i_scrambler_reset_inserter: scrambler_reset_inserter
             out_data  => sr_inserted_data
         );
 
-g_per_channel: for i in 0 to lnk_j8_lane_p'high generate
+g_per_channel: for i in 0 to 3 generate
 
 i_scrambler:  scrambler
         port map ( 
@@ -844,53 +474,5 @@ i_data_to_8b10b: data_to_8b10b port map (
         );
     end generate;
 
-i_tx0: Transceiver Port map ( 
-       mgmt_clk        => gclk,
-       powerup_channel => powerup_channel,
-       tx_running      => tx_running,
-       debug           => tx_debug,
-       gclk27          => gclk27,
-
-       preemp_0p0      => preemp_0p0, 
-       preemp_3p5      => preemp_3p5,
-       preemp_6p0      => preemp_6p0,
-           
-       swing_0p4       => swing_0p4,
-       swing_0p6       => swing_0p6,
-       swing_0p8       => swing_0p8,
-
-       refclk0_p       => refclk0_p,
-       refclk0_n       => refclk0_n,
-       refclk1_p       => refclk1_p,
-       refclk1_n       => refclk1_n,
-       refclk2_p       => refclk2_p,
-       refclk2_n       => refclk2_n,
-       refclk3_p       => refclk3_p,
-       refclk3_n       => refclk3_n,
-       
-       in_symbols      => symbols,
-                  
-       gtptxp          => lnk_j8_lane_p,
-       gtptxn          => lnk_j8_lane_n,
-       symbolclk       => symbolclk);       
-
---   debug(0) <= tx_link_established; 
-   debug(0) <= interface_debug(0);
---process(gclk)
---   begin
---      if rising_edge(gclk) then
---         count <= count + 1;
---         case count(10 downto 8) is
---            when "000"  => debug(0) <= count(7);
---            when "001"  => debug(0) <= tx_debug(0);
---            when "010"  => debug(0) <= tx_debug(1);
---            when "011"  => debug(0) <= tx_debug(2);
---            when "100"  => debug(0) <= tx_debug(3);
---            when "101"  => debug(0) <= tx_debug(4);
---            when "110"  => debug(0) <= tx_debug(5);
---            when others => debug(0) <= tx_debug(6);
---         end case;
---      end if;
---   end process;
 
 end Behavioral;

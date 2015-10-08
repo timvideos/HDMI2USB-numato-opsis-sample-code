@@ -59,6 +59,7 @@ architecture arch of tb_transceiver is
     component Transceiver is
     Port ( mgmt_clk        : in  STD_LOGIC;
            powerup_channel : in  STD_LOGIC_VECTOR;
+           gclk27          : in  STD_LOGIC;
 
            preemp_0p0      : in  STD_LOGIC;
            preemp_3p5      : in  STD_LOGIC;
@@ -72,34 +73,42 @@ architecture arch of tb_transceiver is
 
            refclk0_p       : in  STD_LOGIC;
            refclk0_n       : in  STD_LOGIC;
-
            refclk1_p       : in  STD_LOGIC;
            refclk1_n       : in  STD_LOGIC;
+           refclk2_p       : in  STD_LOGIC;
+           refclk2_n       : in  STD_LOGIC;
+           refclk3_p       : in  STD_LOGIC;
+           refclk3_n       : in  STD_LOGIC;
 
            symbolclk       : out STD_LOGIC;
            in_symbols      : in  std_logic_vector(79 downto 0);
            
-           gtptxp         : out std_logic_vector;
-           gtptxn         : out std_logic_vector);
+           gtptxp         : out std_logic_vector(3 downto 0);
+           gtptxn         : out std_logic_vector(3 downto 0));
    end component;
       signal symbols : std_logic_vector(79 downto 0 ) := (others => '0');
     signal clk             : std_logic := '0';
 	 signal symbolclk       : std_logic := '0';
-    signal tx_running      : std_logic_vector(1 downto 0);    
-    signal powerup_channel : std_logic_vector(1 downto 0) := "00";    
+    signal tx_running      : std_logic_vector(3 downto 0);    
+    signal powerup_channel : std_logic_vector(3 downto 0) := "0000";    
 
-    signal refclk0_p       : STD_LOGIC;
-    signal refclk0_n       : STD_LOGIC;
+    signal refclk0_p       : STD_LOGIC := '1';
+    signal refclk0_n       : STD_LOGIC := '0';
     signal refclk1_p       : STD_LOGIC := '1';
     signal refclk1_n       : STD_LOGIC := '0';
-    signal gtptxp          : std_logic_vector(1 downto 0);
-    signal gtptxn          : std_logic_vector(1 downto 0);    
-    
+    signal refclk2_p       : STD_LOGIC := '1';
+    signal refclk2_n       : STD_LOGIC := '0';
+    signal refclk3_p       : STD_LOGIC := '1';
+    signal refclk3_n       : STD_LOGIC := '0';
+    signal gtptxp          : std_logic_vector(3 downto 0);
+    signal gtptxn          : std_logic_vector(3 downto 0);    
+    signal gclk27          : STD_LOGIC := '1';
 begin
 
 uut: transceiver PORT MAP (
            mgmt_clk        => clk,
            powerup_channel => powerup_channel,
+           gclk27          => gclk27,
 
            preemp_0p0      => '1',
            preemp_3p5      => '0',
@@ -116,6 +125,12 @@ uut: transceiver PORT MAP (
 
            refclk1_p       => refclk1_p,
            refclk1_n       => refclk1_n,
+
+           refclk2_p       => refclk2_p,
+           refclk2_n       => refclk2_n,
+
+           refclk3_p       => refclk3_p,
+           refclk3_n       => refclk3_n,
 
            symbolclk       => symbolclk,
            in_symbols      => symbols,
@@ -144,28 +159,27 @@ process
 
 process
     begin
-        refclk1_p  <='0';
-        refclk1_n  <='1';
+        refclk3_p  <='0';
+        refclk3_n  <='1';
         wait for 3.7 ns;
-        refclk1_p  <='1';
-        refclk1_n  <='0';
+        refclk3_p  <='1';
+        refclk3_n  <='0';
         wait for 3.7 ns;
     end process;
 
 process
     begin
-        refclk0_p  <='0';
-        refclk0_n  <='1';
-        wait for 4.0 ns;
-        refclk0_p  <='1';
-        refclk0_n  <='0';
-        wait for 4.0 ns;
+        gclk27 <='0';
+        wait for 18.5 ns;
+        gclk27 <='1';
+        wait for 18.5 ns;
     end process;
+
 
 process
 	begin
 		wait for 25 ns;
-		powerup_channel <= "11";
+		powerup_channel <= "0011";
 		wait;
 	end process;
 	
