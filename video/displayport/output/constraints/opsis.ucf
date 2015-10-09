@@ -26,7 +26,6 @@ NET "aux_j8_aux_tx_n"  LOC =    "U15"       |IOSTANDARD =         "LVDS_33";    
 #NET "aux_j8_aux_rx_p"  LOC =    "V15"       |IOSTANDARD =         "LVDS_33";     #                      (/DisplayPort/DPTXAUXCH_N)
 # \/ Weakly pulled (100k) to GND via R44
 NET "hpd_j8"               LOC =    "V11"       |IOSTANDARD =        LVCMOS33;     #                      (/FPGA_Bank_1_2/DPTXHPD)
-
 # DISPLAY_PORT - connector J8 - Direction TX
 NET "lnk_j8_lane_p[0]"     LOC =     "B6"       |IOSTANDARD =         LVDS_25;     #                      (/DisplayPort/DPTX_LANEP0)
 NET "lnk_j8_lane_n[0]"     LOC =     "A6"       |IOSTANDARD =         LVDS_25;     #                      (/DisplayPort/DPTX_LANEN0)
@@ -39,3 +38,8 @@ NET "lnk_j8_lane_n[1]"     LOC =     "A8"       |IOSTANDARD =         LVDS_25;  
 #Created by Constraints Editor (xc6slx45t-fgg484-3) - 2015/10/08
 NET "gclk" TNM_NET = gclk;
 TIMESPEC TS_gclk = PERIOD "gclk" 10 ns HIGH 50%;
+#Created by Constraints Editor (xc6slx45t-fgg484-3) - 2015/10/09
+NET "i_tx0/out_ref_clk<2>" TNM_NET = i_tx0/out_ref_clk<2>;
+TIMESPEC TS_i_tx0_out_ref_clk_2_ = PERIOD "i_tx0/out_ref_clk<2>" 135 MHz HIGH 50%;
+NET "refclk3_p" TNM_NET = refclk3_p;
+TIMESPEC TS_refclk3_p = PERIOD "refclk3_p" 135 MHz HIGH 50%;

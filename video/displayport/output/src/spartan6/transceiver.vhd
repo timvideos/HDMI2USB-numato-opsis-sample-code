@@ -93,8 +93,11 @@ entity Transceiver is
 end transceiver;
 
 architecture Behavioral of transceiver is
-    signal gclk135         : STD_LOGIC;
-    signal usrclklocked    : STD_LOGIC;
+    signal gclk135            : STD_LOGIC;
+    signal gclk135_unbuffered : STD_LOGIC;
+    signal clkfb_for_135      : STD_LOGIC;
+
+    signal usrclklocked       : STD_LOGIC;
 
     signal powerup_pll     : std_logic_vector( 3 downto 0)  := "1111";
     signal powerup_refclk  : std_logic_vector( 3 downto 0)  := "1000";
@@ -134,12 +137,6 @@ architecture Behavioral of transceiver is
            gtpresetdone      : in  STD_LOGIC);
     end component;
 
-   component gen135
-   port (
-     CLK100 : in     std_logic;
-     CLK135 : out    std_logic);
-   end component;
-
     signal powerdown_channel : STD_LOGIC_VECTOR(3 downto 0);
 
     signal refclk        : std_logic_vector(3 downto 0);
@@ -157,15 +154,6 @@ architecture Behavioral of transceiver is
     signal preemp_level   : std_logic_vector(2 downto 0); 
     signal swing_level    : std_logic_vector(3 downto 0); 
 
-    constant PLL0_FBDIV_IN      :   integer := 4;
-    constant PLL1_FBDIV_IN      :   integer := 1;
-    constant PLL0_FBDIV_45_IN   :   integer := 5;
-    constant PLL1_FBDIV_45_IN   :   integer := 4;
-    constant PLL0_REFCLK_DIV_IN :   integer := 1;
-    constant PLL1_REFCLK_DIV_IN :   integer := 1;
-                   
---    signal txusrclk          : STD_LOGIC_vector(gtptxp'length-1 downto 0);
---    signal txusrclk2         : STD_LOGIC_vector(gtptxp'length-1 downto 0);
     signal txoutclk          : STD_LOGIC_vector(gtptxp'length-1 downto 0);
 
     signal txusrclk_u         : STD_LOGIC;
@@ -175,7 +163,7 @@ architecture Behavioral of transceiver is
 
     signal gtpclkout_buffered : STD_LOGIC;
     signal gtpclkout_divided  : STD_LOGIC;
---  signal txoutclk_buffered  : STD_LOGIC;
+
     signal dcm_reset_sr       : STD_LOGIC_vector(3 downto 0);
     
     signal out_ref_clk    : std_logic_vector(3 downto 0);
@@ -183,9 +171,37 @@ architecture Behavioral of transceiver is
     signal testlock1      : std_logic;
     signal usrclklock     : std_logic;
 begin
-   i_gen135 : gen135 port map (
-      clk100 => mgmt_clk,
-      clk135 => gclk135
+
+pll_gen135: PLL_BASE generic map (
+      BANDWIDTH            => "HIGH",
+      CLK_FEEDBACK         => "CLKFBOUT",
+      COMPENSATION         => "INTERNAL",
+      DIVCLK_DIVIDE        => 5,
+      CLKFBOUT_MULT        => 54,
+      CLKFBOUT_PHASE       => 0.000,
+      CLKOUT0_DIVIDE       => 8,
+      CLKOUT0_PHASE        => 0.000,
+      CLKOUT0_DUTY_CYCLE   => 0.500,
+      CLKIN_PERIOD         => 10.0,
+      REF_JITTER           => 0.010)
+   port map (
+      CLKFBOUT            => clkfb_for_135,
+      CLKOUT0             => gclk135_unbuffered,
+      CLKOUT1             => open,
+      CLKOUT2             => open,
+      CLKOUT3             => open,
+      CLKOUT4             => open,
+      CLKOUT5             => open,
+      LOCKED              => open,
+      RST                 => '0',
+      -- Input clock control
+      CLKFBIN             => clkfb_for_135,
+      CLKIN               => mgmt_clk);
+
+gclk135_buf : BUFG
+   port map (
+      O   => gclk135,
+      I   => gclk135_unbuffered
    );
 
     pll_in_use <= (0=>'1', others => '1');
@@ -225,10 +241,10 @@ i_bufg_io2: BUFIO2 GENERIC MAP (
     debug(1) <= plllock(1);
     debug(2) <= plllock(2);
     debug(3) <= plllock(3);
-    debug(4) <= gtpreset(0);
-    debug(5) <= gtpreset(1);
-    debug(6) <= gtpreset(2);
-    debug(7) <= gtpreset(3);
+    debug(4) <= gtpresetdone(0);
+    debug(5) <= gtpresetdone(1);
+    debug(6) <= gtpresetdone(2);
+    debug(7) <= gtpresetdone(3);
     
 process(mgmt_clk, plllock(0))
    -- The DCM reset must be asserted for at least 3 cycles after
@@ -243,22 +259,21 @@ process(mgmt_clk, plllock(0))
 
 DCM_SP_inst : DCM_SP
    generic map (
-      CLKDV_DIVIDE => 2.0,                   -- CLKDV divide value
-                                             -- (1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7,7.5,8,9,10,11,12,13,14,15,16).
+      CLKDV_DIVIDE => 2.0,
       CLKFX_DIVIDE => 4,
       CLKFX_MULTIPLY => 2, 
       CLKIN_DIVIDE_BY_2 => FALSE,
       CLKIN_PERIOD => 3.7,
-      CLKOUT_PHASE_SHIFT => "NONE",          -- Output phase shift (NONE, FIXED, VARIABLE)
-      CLK_FEEDBACK => "1X",                  -- Feedback source (NONE, 1X, 2X)
-      DESKEW_ADJUST => "SYSTEM_SYNCHRONOUS", -- SYSTEM_SYNCHRNOUS or SOURCE_SYNCHRONOUS
-      DFS_FREQUENCY_MODE => "LOW",           -- Unsupported - Do not change value
-      DLL_FREQUENCY_MODE => "LOW",           -- Unsupported - Do not change value
-      DSS_MODE => "NONE",                    -- Unsupported - Do not change value
-      DUTY_CYCLE_CORRECTION => TRUE,         -- Unsupported - Do not change value
-      FACTORY_JF => X"c080",                 -- Unsupported - Do not change value
-      PHASE_SHIFT => 0,                      -- Amount of fixed phase shift (-255 to 255)
-      STARTUP_WAIT => FALSE                  -- Delay config DONE until DCM_SP LOCKED (TRUE/FALSE)
+      CLKOUT_PHASE_SHIFT => "NONE", 
+      CLK_FEEDBACK => "1X",
+      DESKEW_ADJUST => "SYSTEM_SYNCHRONOUS",
+      DFS_FREQUENCY_MODE => "LOW",
+      DLL_FREQUENCY_MODE => "LOW",
+      DSS_MODE => "NONE",
+      DUTY_CYCLE_CORRECTION => TRUE,
+      FACTORY_JF => X"c080",
+      PHASE_SHIFT => 0,
+      STARTUP_WAIT => FALSE
    )
    port map (
       CLK0     => txusrclk_u,
@@ -784,6 +799,11 @@ gtpa1_dual_X0Y0:GTPA1_DUAL
      TXN1                            =>      gtptxn(3),
      TXPREEMPHASIS0                  =>      preemp_level,
      TXPREEMPHASIS1                  =>      preemp_level,
+     -- Only so resetdone works..
+     RXUSRCLK0                       =>      txusrclk_buffered,
+     RXUSRCLK1                       =>      txusrclk_buffered,
+     RXUSRCLK20                      =>      txusrclk2_buffered,
+     RXUSRCLK21                      =>      txusrclk2_buffered,
 
         ------------------------ Loopback and Powerdown Ports ----------------------
         LOOPBACK0                       =>      (others => '0'),
@@ -877,12 +897,8 @@ gtpa1_dual_X0Y0:GTPA1_DUAL
         RXDATAWIDTH1                    =>      "01",
         RXRECCLK0                       =>      open,
         RXRECCLK1                       =>      open,
-        RXRESET0                        =>      '1',
-        RXRESET1                        =>      '1',
-        RXUSRCLK0                       =>      '0',
-        RXUSRCLK1                       =>      '0',
-        RXUSRCLK20                      =>      '0',
-        RXUSRCLK21                      =>      '0',
+        RXRESET0                        =>      '0',
+        RXRESET1                        =>      '0',
         ------- Receive Ports - RX Driver,OOB signalling,Coupling and Eq.,CDR ------
         GATERXELECIDLE0                 =>      '0',
         GATERXELECIDLE1                 =>      '0',
@@ -903,8 +919,8 @@ gtpa1_dual_X0Y0:GTPA1_DUAL
         RXP0                            =>      '1',
         RXP1                            =>      '1',
         ----------- Receive Ports - RX Elastic Buffer and Phase Alignment ----------
-        RXBUFRESET0                     =>      '1',
-        RXBUFRESET1                     =>      '1',
+        RXBUFRESET0                     =>      '0',
+        RXBUFRESET1                     =>      '0',
         RXBUFSTATUS0                    =>      open,
         RXBUFSTATUS1                    =>      open,
         RXENPMAPHASEALIGN0              =>      '0',
@@ -1324,6 +1340,11 @@ gtpa1_dual_X1Y0:GTPA1_DUAL
      TXN1                            =>      gtptxn(1),
      TXPREEMPHASIS0                  =>      preemp_level,
      TXPREEMPHASIS1                  =>      preemp_level,
+     -- Only so resetdone works..
+     RXUSRCLK0                       =>      txusrclk_buffered,
+     RXUSRCLK1                       =>      txusrclk_buffered,
+     RXUSRCLK20                      =>      txusrclk2_buffered,
+     RXUSRCLK21                      =>      txusrclk2_buffered,
 
         ------------------------ Loopback and Powerdown Ports ----------------------
         LOOPBACK0                       =>      (others => '0'),
@@ -1413,12 +1434,8 @@ gtpa1_dual_X1Y0:GTPA1_DUAL
         RXDATAWIDTH1                    =>      "01",
         RXRECCLK0                       =>      open,
         RXRECCLK1                       =>      open,
-        RXRESET0                        =>      '1',
-        RXRESET1                        =>      '1',
-        RXUSRCLK0                       =>      '0',
-        RXUSRCLK1                       =>      '0',
-        RXUSRCLK20                      =>      '0',
-        RXUSRCLK21                      =>      '0',
+        RXRESET0                        =>      '0',
+        RXRESET1                        =>      '0',
         ------- Receive Ports - RX Driver,OOB signalling,Coupling and Eq.,CDR ------
         GATERXELECIDLE0                 =>      '0',
         GATERXELECIDLE1                 =>      '0',
@@ -1439,8 +1456,8 @@ gtpa1_dual_X1Y0:GTPA1_DUAL
         RXP0                            =>      '1',
         RXP1                            =>      '1',
         ----------- Receive Ports - RX Elastic Buffer and Phase Alignment ----------
-        RXBUFRESET0                     =>      '1',
-        RXBUFRESET1                     =>      '1',
+        RXBUFRESET0                     =>      '0',
+        RXBUFRESET1                     =>      '0',
         RXBUFSTATUS0                    =>      open,
         RXBUFSTATUS1                    =>      open,
         RXENPMAPHASEALIGN0              =>      '0',

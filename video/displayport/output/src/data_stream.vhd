@@ -447,8 +447,8 @@ g_per_channel: for i in 0 to 3 generate
 i_scrambler:  scrambler
         port map ( 
             clk        => symbolclk,
-            bypass0    => '0',
-            bypass1    => '0',
+            bypass0    => '1',
+            bypass1    => '1',
             in_data    => sr_inserted_data(17+i*18 downto 0+i*18),
             out_data   => scrambled_data(17+i*18 downto 0+i*18)
         );

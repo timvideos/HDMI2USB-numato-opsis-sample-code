@@ -124,10 +124,10 @@ architecture arch of aux_channel is
     signal state            : t_state               := error;
     signal next_state       : t_state               := error;
     signal state_on_success : t_state               := error;
-    signal pulse_per_second : std_logic             := '0';
-	signal pps_count        : unsigned(26 downto 0) := (9=>'1',others => '0');   
-    signal pulse_per_tenth_second : std_logic             := '0';
- 	signal ppts_count        : unsigned(26 downto 0) := (9=>'1',others => '0');   
+    signal retry_now : std_logic             := '0';
+	signal retry_count        : unsigned(26 downto 0) := (9=>'1',others => '0');   
+    signal link_check_now : std_logic             := '0';
+ 	signal link_check_count        : unsigned(26 downto 0) := (9=>'1',others => '0');   
     signal count_100us      : unsigned(14 downto 0) := to_unsigned(1000,15);
     component dp_aux_messages is
 	port ( clk          : in  std_logic;
@@ -356,7 +356,7 @@ clk_proc: process(clK)
                 -- expected back, and where it will be routed
                 --
                 -- NOTE: If you set 'expected' incorrectly then bytes will
-                --       get left in the RX FIFO, corrupting things
+                --       get left in the RX FIFO, potentially corrupting things
                 ------------------------------------------------------------
                 msg_de           <= '1';
                 status_de_active <= '0';
@@ -562,7 +562,7 @@ clk_proc: process(clK)
             -- Manage the AUX channel timeout and the retry to  
             -- establish a link. 
             -------------------------------------------------------------                            
-            if channel_timeout = '1' or (state /= reset and state /= link_established and pulse_per_second = '1') then
+            if channel_timeout = '1' or (state /= reset and state /= link_established and retry_now = '1') then
                 next_state <= reset;
                 state      <= error;
             end if;
@@ -571,7 +571,7 @@ clk_proc: process(clK)
             -- If the link was established, then every 
             -- now and then check the state of the link  
             -------------------------------------------------
-            if state = link_established and pulse_per_tenth_second = '1' then
+            if state = link_established and link_check_now = '1' then
                 next_state <= check_link;  
             end if;
 
@@ -592,23 +592,21 @@ clk_proc: process(clK)
             -----------------------------------------
             -- Manage the reset timer
             -----------------------------------------
-			if pps_count = 0 then
-			  pulse_per_second <= '1';
-			  -- PPS actually became a 2Hz pulse....
-			  pps_count        <= to_unsigned(49999999,27);
+			if retry_count = 0 then
+			  retry_now   <= '1';
+			  retry_count <= to_unsigned(49999999,27);
 			else
-			  pulse_per_second <= '0';
-			  pps_count        <= pps_count - 1;
+			  retry_now   <= '0';
+			  retry_count <= retry_count - 1;
 			end if;
-			if ppts_count = 0 then
-			  pulse_per_tenth_second <= '1';
+			if link_check_count = 0 then
+			  link_check_now   <= '1';
 			  -- PPS actually became a 2Hz pulse....
-			  ppts_count        <= to_unsigned(19999999,27);
+			  link_check_count <= to_unsigned(4999999,27);
 			else
-			  pulse_per_tenth_second  <= '0';
-			  ppts_count        <= ppts_count - 1;
+			  link_check_now   <= '0';
+			  link_check_count <= link_check_count - 1;
 			end if;
-
 		end if;		
 	end process;
 end architecture;
