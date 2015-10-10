@@ -7,12 +7,12 @@ NET "debug[0]"             LOC="T7"       |IOSTANDARD = "LVCMOS33";
 NET "debug[1]"             LOC="Y7"       |IOSTANDARD = "LVCMOS33";
 
 # FXO-LC73 - component U27
-NET "refclk0_p"            LOC =    "A10";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_P | Net-(C248-Pad2))
-NET "refclk0_n"            LOC =    "B10";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_N | Net-(C247-Pad2))
-NET "refclk1_p"            LOC =    "C11";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_P | Net-(C248-Pad2))
-NET "refclk1_n"            LOC =    "D11";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_N | Net-(C247-Pad2))
-NET "refclk2_p"            LOC =    "A12";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_P | Net-(C248-Pad2))
-NET "refclk2_n"            LOC =    "B12";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_N | Net-(C247-Pad2))
+#NET "refclk0_p"            LOC =    "A10";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_P | Net-(C248-Pad2))
+#NET "refclk0_n"            LOC =    "B10";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_N | Net-(C247-Pad2))
+#NET "refclk1_p"            LOC =    "C11";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_P | Net-(C248-Pad2))
+#NET "refclk1_n"            LOC =    "D11";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_N | Net-(C247-Pad2))
+#NET "refclk2_p"            LOC =    "A12";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_P | Net-(C248-Pad2))
+#NET "refclk2_n"            LOC =    "B12";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_N | Net-(C247-Pad2))
 #### Actually has the reference clock on it
 NET "refclk3_p"            LOC =    "E12";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_P | Net-(C248-Pad2))
 NET "refclk3_n"            LOC =    "F12";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_N | Net-(C247-Pad2))

@@ -60,14 +60,6 @@ entity top_level is
         g22                 : out   std_logic := '1';
         debug               : out   std_logic_vector(1 downto 0) := (others => '0');
         ------------------------------
-        refclk0_p           : in    STD_LOGIC;
-        refclk0_n           : in    STD_LOGIC;
-        refclk1_p           : in    STD_LOGIC;
-        refclk1_n           : in    STD_LOGIC;
-        refclk2_p           : in    STD_LOGIC;
-        refclk2_n           : in    STD_LOGIC;
-        refclk3_p           : in    STD_LOGIC;
-        refclk3_n           : in    STD_LOGIC;
         lnk_j8_lane_p       : out   std_logic_vector(3 downto 0);
         lnk_j8_lane_n       : out   std_logic_vector(3 downto 0);    
         ------------------------------
@@ -347,16 +339,6 @@ architecture Behavioral of top_level is
            swing_0p8       : in  STD_LOGIC;
 
            tx_running      : out STD_LOGIC_vector;
-
-
-           refclk0_p       : in  STD_LOGIC;
-           refclk0_n       : in  STD_LOGIC;
-           refclk1_p       : in  STD_LOGIC;
-           refclk1_n       : in  STD_LOGIC;
-           refclk2_p       : in  STD_LOGIC;
-           refclk2_n       : in  STD_LOGIC;
-           refclk3_p       : in  STD_LOGIC;
-           refclk3_n       : in  STD_LOGIC;
 
            symbolclk      : out STD_LOGIC;
            
@@ -859,15 +841,6 @@ i_tx0: Transceiver Port map (
        swing_0p6       => swing_0p6,
        swing_0p8       => swing_0p8,
 
-       refclk0_p       => refclk0_p,
-       refclk0_n       => refclk0_n,
-       refclk1_p       => refclk1_p,
-       refclk1_n       => refclk1_n,
-       refclk2_p       => refclk2_p,
-       refclk2_n       => refclk2_n,
-       refclk3_p       => refclk3_p,
-       refclk3_n       => refclk3_n,
-       
        in_symbols      => symbols,
                   
        gtptxp          => lnk_j8_lane_p,
@@ -882,11 +855,11 @@ i_tx0: Transceiver Port map (
 --      if rising_edge(gclk) then
 --         count <= count + 1;
 --         case count(10 downto 8) is
---            when "000"  => debug(0) <= count(7);
---            when "001"  => debug(0) <= tx_running(0);
---            when "010"  => debug(0) <= tx_running(1);
---            when "011"  => debug(0) <= tx_running(2);
---            when "100"  => debug(0) <= tx_running(3);
+--            when "000"  => debug(0) <= not count(7);
+--            when "001"  => debug(0) <= tx_debug(0);
+--            when "010"  => debug(0) <= tx_debug(1);
+--            when "011"  => debug(0) <= tx_debug(2);
+--            when "100"  => debug(0) <= tx_debug(3);
 --            when "101"  => debug(0) <= tx_debug(4);
 --            when "110"  => debug(0) <= tx_debug(5);
 --            when others => debug(0) <= tx_debug(6);

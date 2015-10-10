@@ -51,7 +51,6 @@
 --  0.3 | 2015-09-30 | Created version for Spartan 6
 ------------------------------------------------------------------------------------
 
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
@@ -75,15 +74,6 @@ entity Transceiver is
            swing_0p8       : in  STD_LOGIC;
 
            tx_running      : out STD_LOGIC_VECTOR := (others => '0');
-
-           refclk0_p       : in  STD_LOGIC;
-           refclk0_n       : in  STD_LOGIC;
-           refclk1_p       : in  STD_LOGIC;
-           refclk1_n       : in  STD_LOGIC;
-           refclk2_p       : in  STD_LOGIC;
-           refclk2_n       : in  STD_LOGIC;
-           refclk3_p       : in  STD_LOGIC;
-           refclk3_n       : in  STD_LOGIC;
 
            symbolclk       : out STD_LOGIC;
            in_symbols      : in  std_logic_vector(79 downto 0);
@@ -241,10 +231,10 @@ i_bufg_io2: BUFIO2 GENERIC MAP (
     debug(1) <= plllock(1);
     debug(2) <= plllock(2);
     debug(3) <= plllock(3);
-    debug(4) <= gtpresetdone(0);
-    debug(5) <= gtpresetdone(1);
-    debug(6) <= gtpresetdone(2);
-    debug(7) <= gtpresetdone(3);
+    debug(4) <= '1';
+    debug(5) <= '1';
+    debug(6) <= '1';
+    debug(7) <= '1';
     
 process(mgmt_clk, plllock(0))
    -- The DCM reset must be asserted for at least 3 cycles after
@@ -467,29 +457,11 @@ Inst_gtpa1_dual_reset_controller3: gtpa1_dual_reset_controller PORT MAP(
    --
    -- 
    -------------------------------------------------------------
-I_IBUFDS_2 : IBUFDS
-    port map
-    (
-        O               => 	refclk(2),
-        I               => 	refclk2_p,
-        IB              => 	refclk2_n
-    );
-
-I_IBUFDS_3 : IBUFDS
-    port map
-    (
-        O               => 	refclk(3),
-        I               => 	refclk3_p,
-        IB              => 	refclk3_n
-    );
-
 gtpa1_dual_X0Y0:GTPA1_DUAL
     generic map
     (
- 
-
-     SIM_REFCLK0_SOURCE          =>     ("001"),  -- CLK10
-     SIM_REFCLK1_SOURCE          =>     ("001"),  -- CLK11
+     SIM_REFCLK0_SOURCE          =>     ("100"),  -- CLK10
+     SIM_REFCLK1_SOURCE          =>     ("100"),  -- CLK11
      PLL_SOURCE_0                =>     ("PLL0"),  -- Source from PLL 0
      PLL_SOURCE_1                =>     ("PLL1"),  -- Source from PLL 0
 
@@ -752,14 +724,14 @@ gtpa1_dual_X0Y0:GTPA1_DUAL
     (
      TXPOWERDOWN0                    =>      txpowerdown(5 downto 4),
      TXPOWERDOWN1                    =>      txpowerdown(7 downto 6),
-     CLK00                           =>      refclk(2),
-     CLK01                           =>      refclk(2),
-     CLK10                           =>      refclk(3),
-     CLK11                           =>      refclk(3),
+     CLK00                           =>      '0',
+     CLK01                           =>      '0',
+     CLK10                           =>      '0',
+     CLK11                           =>      '0',
      GCLK00                          =>      gclk135,
      GCLK01                          =>      gclk135,
-     GCLK10                          =>      gclk135,
-     GCLK11                          =>      gclk135,
+     GCLK10                          =>      '0',
+     GCLK11                          =>      '0',
      GTPRESET0                       =>      gtpreset(2),
      GTPRESET1                       =>      gtpreset(3),
      PLLLKDET0                       =>      plllock(2),
@@ -771,8 +743,8 @@ gtpa1_dual_X0Y0:GTPA1_DUAL
      REFCLKPLL0                      =>      out_ref_clk(2),
      REFCLKPLL1                      =>      out_ref_clk(3),
      
-     REFSELDYPLL0                    =>      "001", -- use CLK10
-     REFSELDYPLL1                    =>      "001", -- use CLK11
+     REFSELDYPLL0                    =>      "001", -- use GCLK135
+     REFSELDYPLL1                    =>      "001", -- use GCLK135
      RESETDONE0                      =>      gtpresetdone(2),
      RESETDONE1                      =>      gtpresetdone(3),
      GTPCLKOUT0                      =>      gtpclkout(5 downto 4),
@@ -827,8 +799,8 @@ gtpa1_dual_X0Y0:GTPA1_DUAL
         REFCLKOUT1                      =>      open,
         REFCLKPLL0                      =>      open,
         REFCLKPLL1                      =>      open,
-        REFCLKPWRDNB0                   =>      '0',  -- Not used - should power down
-        REFCLKPWRDNB1                   =>      '0',  -- Used- must be powered up
+        REFCLKPWRDNB0                   =>      '1',  -- Not used - should power down
+        REFCLKPWRDNB1                   =>      '1',  -- Used- must be powered up
         TSTCLK0                         =>      '0',
         TSTCLK1                         =>      '0',
         TSTIN0                          =>      (others => '0'),
@@ -1005,31 +977,15 @@ gtpa1_dual_X0Y0:GTPA1_DUAL
 
     ----------------------------- GTPA1_DUAL Instance X1Y0 --------------------------   
     -- This is the driver for Display port channels 1 and 0.
-    -- It is clocked from X0Y0 on refclk0 over the clkineast0 ports
+    -- It is clocked from X0Y0 on gclk00 over the clkinwest1 ports
     ----------------------------------------------------------------------------------
-I_IBUFDS_0 : IBUFDS
-    port map
-    (
-        O               => 	refclk(0),
-        I               => 	refclk0_p,
-        IB              => 	refclk0_n
-    );
-
-I_IBUFDS_1 : IBUFDS
-    port map
-    (
-        O               => 	refclk(1),
-        I               => 	refclk1_p,
-        IB              => 	refclk1_n
-    );
-
 gtpa1_dual_X1Y0:GTPA1_DUAL
     generic map
     (
  
 
-     SIM_REFCLK0_SOURCE          =>     ("001"),
-     SIM_REFCLK1_SOURCE          =>     ("001"),
+     SIM_REFCLK0_SOURCE          =>     ("111"),
+     SIM_REFCLK1_SOURCE          =>     ("111"),
      PLL_SOURCE_0                =>     ("PLL0"),  -- Source from PLL 0
      PLL_SOURCE_1                =>     ("PLL1"),  -- Source from PLL 0
 
@@ -1292,18 +1248,18 @@ gtpa1_dual_X1Y0:GTPA1_DUAL
     (
      TXPOWERDOWN0                    =>      txpowerdown(1 downto 0),
      TXPOWERDOWN1                    =>      txpowerdown(3 downto 2),
-     CLK00                           =>      refclk(0),
-     CLK01                           =>      refclk(0),
-     CLK10                           =>      refclk(1),
-     CLK11                           =>      refclk(1),
-     GCLK00                          =>      gclk135,
-     GCLK01                          =>      gclk135,
-     GCLK10                          =>      gclk135,
-     GCLK11                          =>      gclk135,
+     CLK00                           =>      '0',
+     CLK01                           =>      '0',
+     CLK10                           =>      '0',
+     CLK11                           =>      '0',
+     GCLK00                          =>      '0',
+     GCLK01                          =>      '0',
+     GCLK10                          =>      '0',
+     GCLK11                          =>      '0',
      CLKINEAST0                      =>      '0',
      CLKINEAST1                      =>      '0',
-     CLKINWEST0                      =>      out_ref_clk(2),
-     CLKINWEST1                      =>      out_ref_clk(2),
+     CLKINWEST0                      =>      out_ref_clk(3),
+     CLKINWEST1                      =>      out_ref_clk(3),
      GTPRESET0                       =>      gtpreset(0),
      GTPRESET1                       =>      gtpreset(1),
      PLLLKDET0                       =>      plllock(0),
@@ -1312,8 +1268,8 @@ gtpa1_dual_X1Y0:GTPA1_DUAL
      PLLLKDETEN1                     =>      plllocken(1),
      PLLPOWERDOWN0                   =>      pllpowerdown(0),
      PLLPOWERDOWN1                   =>      pllpowerdown(1),
-     REFSELDYPLL0                    =>      "001", -- use West clock
-     REFSELDYPLL1                    =>      "001", -- use West clock
+     REFSELDYPLL0                    =>      "111", -- use West clock
+     REFSELDYPLL1                    =>      "111", -- use West clock
      RESETDONE0                      =>      gtpresetdone(0),
      RESETDONE1                      =>      gtpresetdone(1),
      GTPCLKOUT0                      =>      gtpclkout(1 downto 0),
@@ -1364,8 +1320,8 @@ gtpa1_dual_X1Y0:GTPA1_DUAL
         REFCLKOUT1                      =>      open,
         REFCLKPLL0                      =>      open,
         REFCLKPLL1                      =>      open,
-        REFCLKPWRDNB0                   =>      '0',  -- Not used - should power down
-        REFCLKPWRDNB1                   =>      '0',  -- Used- must be powered up
+        REFCLKPWRDNB0                   =>      '1',  -- Not used - should power down
+        REFCLKPWRDNB1                   =>      '1',  -- Used- must be powered up
         TSTCLK0                         =>      '0',
         TSTCLK1                         =>      '0',
         TSTIN0                          =>      (others => '0'),

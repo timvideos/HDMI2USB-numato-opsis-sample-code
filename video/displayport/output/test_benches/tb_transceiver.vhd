@@ -71,15 +71,6 @@ architecture arch of tb_transceiver is
 
            tx_running      : out STD_LOGIC_VECTOR := (others => '0');
 
-           refclk0_p       : in  STD_LOGIC;
-           refclk0_n       : in  STD_LOGIC;
-           refclk1_p       : in  STD_LOGIC;
-           refclk1_n       : in  STD_LOGIC;
-           refclk2_p       : in  STD_LOGIC;
-           refclk2_n       : in  STD_LOGIC;
-           refclk3_p       : in  STD_LOGIC;
-           refclk3_n       : in  STD_LOGIC;
-
            symbolclk       : out STD_LOGIC;
            in_symbols      : in  std_logic_vector(79 downto 0);
            
@@ -92,14 +83,6 @@ architecture arch of tb_transceiver is
     signal tx_running      : std_logic_vector(3 downto 0);    
     signal powerup_channel : std_logic_vector(3 downto 0) := "0000";    
 
-    signal refclk0_p       : STD_LOGIC := '1';
-    signal refclk0_n       : STD_LOGIC := '0';
-    signal refclk1_p       : STD_LOGIC := '1';
-    signal refclk1_n       : STD_LOGIC := '0';
-    signal refclk2_p       : STD_LOGIC := '1';
-    signal refclk2_n       : STD_LOGIC := '0';
-    signal refclk3_p       : STD_LOGIC := '1';
-    signal refclk3_n       : STD_LOGIC := '0';
     signal gtptxp          : std_logic_vector(3 downto 0);
     signal gtptxn          : std_logic_vector(3 downto 0);    
     signal gclk27          : STD_LOGIC := '1';
@@ -119,18 +102,6 @@ uut: transceiver PORT MAP (
            swing_0p8       => '0',
 
            tx_running      => tx_running,
-
-           refclk0_p       => refclk0_p,
-           refclk0_n       => refclk0_n,
-
-           refclk1_p       => refclk1_p,
-           refclk1_n       => refclk1_n,
-
-           refclk2_p       => refclk2_p,
-           refclk2_n       => refclk2_n,
-
-           refclk3_p       => refclk3_p,
-           refclk3_n       => refclk3_n,
 
            symbolclk       => symbolclk,
            in_symbols      => symbols,
@@ -156,16 +127,6 @@ process
 		wait for 5 ns;
 		clk <= '0';
 	end process;
-
-process
-    begin
-        refclk3_p  <='0';
-        refclk3_n  <='1';
-        wait for 3.7 ns;
-        refclk3_p  <='1';
-        refclk3_n  <='0';
-        wait for 3.7 ns;
-    end process;
 
 process
     begin
