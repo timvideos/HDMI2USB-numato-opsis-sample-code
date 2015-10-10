@@ -87,8 +87,6 @@ architecture Behavioral of transceiver is
     signal gclk135_unbuffered : STD_LOGIC;
     signal clkfb_for_135      : STD_LOGIC;
 
-    signal usrclklocked       : STD_LOGIC;
-
     signal powerup_pll     : std_logic_vector( 3 downto 0)  := "1111";
     signal powerup_refclk  : std_logic_vector( 3 downto 0)  := "1000";
 

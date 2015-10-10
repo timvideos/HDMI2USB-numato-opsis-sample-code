@@ -43,7 +43,7 @@ end gtpa1_dual_reset_controller;
 
 architecture Behavioral of gtpa1_dual_reset_controller is
    signal count_pll     : unsigned(15 downto 0) := (6=>'0',others => '1');
-   signal count_channel : unsigned(31 downto 0) := (6=>'0',others => '1');
+   signal count_channel : unsigned(41 downto 0) := (6=>'0',others => '1');
    signal pll_state     : std_logic_vector(1 downto 0) := (others => '0');
    signal channel_state : std_logic_vector(1 downto 0) := (others => '0');
    signal gtpreset_for_pll : std_logic;

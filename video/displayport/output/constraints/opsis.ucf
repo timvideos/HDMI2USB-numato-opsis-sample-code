@@ -14,8 +14,8 @@ NET "debug[1]"             LOC="Y7"       |IOSTANDARD = "LVCMOS33";
 #NET "refclk2_p"            LOC =    "A12";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_P | Net-(C248-Pad2))
 #NET "refclk2_n"            LOC =    "B12";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_N | Net-(C247-Pad2))
 #### Actually has the reference clock on it
-NET "refclk3_p"            LOC =    "E12";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_P | Net-(C248-Pad2))
-NET "refclk3_n"            LOC =    "F12";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_N | Net-(C247-Pad2))
+#NET "refclk3_p"            LOC =    "E12";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_P | Net-(C248-Pad2))
+#NET "refclk3_n"            LOC =    "F12";#       |IOSTANDARD =         LVDS_33;      #                      (/FPGA_Bank_0_3/MGT135MHz_N | Net-(C247-Pad2))
 # \/ Weakly pulled (1M) to GND via R42
 # NET "dp_j8_config1"        LOC =    "V20"       |IOSTANDARD =        LVCMOS33;     #                      (/DisplayPort/DPTXCONFIG1)
 # \/ Weakly pulled (5M) to GND via R43
@@ -38,8 +38,3 @@ NET "lnk_j8_lane_n[1]"     LOC =     "A8"       |IOSTANDARD =         LVDS_25;  
 #Created by Constraints Editor (xc6slx45t-fgg484-3) - 2015/10/08
 NET "gclk" TNM_NET = gclk;
 TIMESPEC TS_gclk = PERIOD "gclk" 10 ns HIGH 50%;
-#Created by Constraints Editor (xc6slx45t-fgg484-3) - 2015/10/09
-NET "i_tx0/out_ref_clk<2>" TNM_NET = i_tx0/out_ref_clk<2>;
-TIMESPEC TS_i_tx0_out_ref_clk_2_ = PERIOD "i_tx0/out_ref_clk<2>" 135 MHz HIGH 50%;
-NET "refclk3_p" TNM_NET = refclk3_p;
-TIMESPEC TS_refclk3_p = PERIOD "refclk3_p" 135 MHz HIGH 50%;
