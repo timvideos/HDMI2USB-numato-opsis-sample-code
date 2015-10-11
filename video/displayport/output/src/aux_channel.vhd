@@ -562,7 +562,9 @@ clk_proc: process(clK)
             -- Manage the AUX channel timeout and the retry to  
             -- establish a link. 
             -------------------------------------------------------------                            
-            if channel_timeout = '1' or (state /= reset and state /= link_established and retry_now = '1') then
+--            if channel_timeout = '1' or (state /= reset and state /= link_established and retry_now = '1') then
+            if channel_timeout = '1' or (state /= reset      and state /= link_established and 
+			 	                             state /= check_link and  state /= check_wait      and retry_now = '1') then
                 next_state <= reset;
                 state      <= error;
             end if;
@@ -600,7 +602,7 @@ clk_proc: process(clK)
 			  retry_count <= retry_count - 1;
 			end if;
 			if link_check_count = 0 then
-	--		  link_check_now   <= '1';
+			  link_check_now   <= '1';
 			  -- PPS actually became a 2Hz pulse....
 			  link_check_count <= to_unsigned(99999999,27);
 			else

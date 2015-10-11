@@ -848,27 +848,27 @@ i_tx0: Transceiver Port map (
        symbolclk       => symbolclk);       
 
 --   debug(0) <= tx_link_established; 
---   debug(0) <= interface_debug(0);
+     debug(0) <= interface_debug(0);
 --   debug(0) <= tx_debug(0); -- PLL0 status
 
    
-process(symbolclk)
-   begin
-   
-      -- SHow the HBLANK as a debug of the video stream.
-      if rising_edge(symbolclk) then
-         -- Look for BS symbols
-         if sr_inserted_data(8 downto 0) = "110111100" or sr_inserted_data(17 downto 9) = "110111100" then
-            debug(0) <= toggle and tx_link_established; --'1';
-            toggle <= not toggle;
-         end if;
-         -- Look for BE symbols
-         if sr_inserted_data(8 downto 0) = "111111011" or sr_inserted_data(17 downto 9) = "111111011" then
-            debug(0) <= toggle and tx_link_established; --'0';
-            toggle <= not toggle;
-         end if;
-      end if;
-   end process;
+--process(symbolclk)
+--   begin
+--   
+--      -- SHow the HBLANK as a debug of the video stream.
+--      if rising_edge(symbolclk) then
+--         -- Look for BS symbols
+--         if sr_inserted_data(8 downto 0) = "110111100" or sr_inserted_data(17 downto 9) = "110111100" then
+--            debug(0) <= toggle and tx_link_established; --'1';
+--            toggle <= not toggle;
+--         end if;
+--         -- Look for BE symbols
+--         if sr_inserted_data(8 downto 0) = "111111011" or sr_inserted_data(17 downto 9) = "111111011" then
+--            debug(0) <= toggle and tx_link_established; --'0';
+--            toggle <= not toggle;
+--         end if;
+--      end if;
+--   end process;
 --process(gclk)
 --   begin
 --      if rising_edge(gclk) then
