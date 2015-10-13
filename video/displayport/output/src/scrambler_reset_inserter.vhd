@@ -49,8 +49,8 @@
 --  Ver | Date       | Change
 --------+------------+---------------------------------------------------------------
 --  0.1 | 2015-09-17 | Initial Version
+--  0.2 | 2015-10-13 | Optimize out 72 registers :-)
 ------------------------------------------------------------------------------------
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
@@ -64,36 +64,37 @@ entity scrambler_reset_inserter is
 end entity;
 
 architecture arch of scrambler_reset_inserter is
-    signal   bs_count : unsigned(8 downto 0) := (others => '0');
-    constant BS       : std_logic_vector(8 downto 0) := "110111100";   -- K28.5
-    constant SR       : std_logic_vector(8 downto 0) := "100011100";   -- K28.0
+    signal   bs_count       : unsigned(8 downto 0) := (others => '0'); -- Cycles from 0 to 511
+    signal   substitue_next : std_logic := '0';
+    constant BS             : std_logic_vector(8 downto 0) := "110111100";   -- K28.5
+    constant SR             : std_logic_vector(8 downto 0) := "100011100";   -- K28.0
 begin
 
+process(in_data,bs_count,substitue_next)
+   begin
+      out_data  <= in_data;
+      if in_data(8 downto 0) = BS then
+          if substitue_next = '1' then
+              out_data( 8 downto  0) <= SR;
+              out_data(26 downto 18) <= SR;
+              out_data(44 downto 36) <= SR;
+              out_data(62 downto 54) <= SR;
+          end if;
+      end if;
+   end process;
+   
 process(clk)
     begin
-        if rising_edge(clk) then
-            out_data  <= in_data;
-            
+        if rising_edge(clk) then            
             ------------------------------------------------
-            -- Subsitute every 513nd Blank start (BS) symbol
+            -- Subsitute every 512nd Blank start (BS) symbol
             -- with a Scrambler Reset (SR) symbol. 
             ------------------------------------------------
             if in_data(8 downto 0) = BS then
-                if bs_count = 511 then
-                    out_data( 8 downto  0) <= SR;
-                    out_data(26 downto 18) <= SR;
-                    out_data(44 downto 36) <= SR;
-                    out_data(62 downto 54) <= SR;
-                end if;
-                bs_count <= bs_count + 1;
-            end if;
-
-            if in_data(17 downto 9) = BS then
-                if bs_count = 511 then
-                    out_data(17 downto  9) <= SR;
-                    out_data(35 downto 27) <= SR;
-                    out_data(53 downto 45) <= SR;
-                    out_data(71 downto 63) <= SR;
+                if bs_count = 0 then
+                  substitue_next <= '1';
+                else
+                  substitue_next <= '0';
                 end if;
                 bs_count <= bs_count + 1;
             end if;

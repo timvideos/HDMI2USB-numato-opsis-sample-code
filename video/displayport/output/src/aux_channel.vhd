@@ -602,7 +602,7 @@ clk_proc: process(clK)
 			  retry_count <= retry_count - 1;
 			end if;
 			if link_check_count = 0 then
-			  link_check_now   <= '1';
+	--		  link_check_now   <= '1';
 			  -- PPS actually became a 2Hz pulse....
 			  link_check_count <= to_unsigned(99999999,27);
 			else

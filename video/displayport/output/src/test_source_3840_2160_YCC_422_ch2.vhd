@@ -97,10 +97,10 @@ architecture arch of test_source_3840_2160_YCC_422_ch2 is
     
     constant DUMMY  : std_logic_vector(8 downto 0) := "000000011";   -- 0xAA
     constant ZERO   : std_logic_vector(8 downto 0) := "000000000";   -- 0x00
-    constant PIX_Y0 : std_logic_vector(8 downto 0) := "010000000";   -- 0xC0
-    constant PIX_Y1 : std_logic_vector(8 downto 0) := "010000000";   -- 0xC0
-    constant PIX_Cb : std_logic_vector(8 downto 0) := "010000000";   -- 0x80
-    constant PIX_Cr : std_logic_vector(8 downto 0) := "010000000";   -- 0x80
+    signal   PIX_Y0 : std_logic_vector(8 downto 0) := "010000000";   -- 0xC0
+    signal   PIX_Y1 : std_logic_vector(8 downto 0) := "010000000";   -- 0xC0
+    signal   PIX_Cb : std_logic_vector(8 downto 0) := "010000000";   -- 0x80
+    signal   PIX_Cr : std_logic_vector(8 downto 0) := "010000000";   -- 0x80
 
     constant SS     : std_logic_vector(8 downto 0) := "101011100";   -- K28.2
     constant SE     : std_logic_vector(8 downto 0) := "111111101";   -- K29.7
@@ -198,6 +198,52 @@ process(clk)
         if rising_edge(clk) then
             switch_point <= '0';
             block_count <= block_count+1; 
+            
+            if col_count = 1957  then
+               -- flick to white  (R+G+B)
+               PIX_Y0 <= std_logic_vector(to_unsigned(174, 9));
+               PIX_Y1 <= std_logic_vector(to_unsigned(174, 9));
+               PIX_Cb <= std_logic_vector(to_unsigned(128, 9));
+               PIX_Cr <= std_logic_vector(to_unsigned(128, 9));               
+            elsif col_count = 279 then
+               -- Should be yellow (G+R)
+               PIX_Y0 <= std_logic_vector(to_unsigned(156, 9));
+               PIX_Y1 <= std_logic_vector(to_unsigned(156, 9));
+               PIX_Cb <= std_logic_vector(to_unsigned( 47, 9));
+               PIX_Cr <= std_logic_vector(to_unsigned(141, 9));
+            elsif col_count = 559 then
+               -- Should be Cyan (G+B)
+               PIX_Y0 <= std_logic_vector(to_unsigned(127, 9));
+               PIX_Y1 <= std_logic_vector(to_unsigned(127, 9));
+               PIX_Cb <= std_logic_vector(to_unsigned(155, 9));
+               PIX_Cr <= std_logic_vector(to_unsigned( 47, 9));
+            elsif col_count = 839 then
+               -- Should be Green (G)
+               PIX_Y0 <= std_logic_vector(to_unsigned(109, 9));
+               PIX_Y1 <= std_logic_vector(to_unsigned(109, 9));
+               PIX_Cb <= std_logic_vector(to_unsigned( 74, 9));
+               PIX_Cr <= std_logic_vector(to_unsigned( 60, 9));
+            elsif col_count = 1118 then
+               -- Should be Magenta (R+B)
+               PIX_Y0 <= std_logic_vector(to_unsigned( 81, 9));
+               PIX_Y1 <= std_logic_vector(to_unsigned( 81, 9));
+               PIX_Cb <= std_logic_vector(to_unsigned(182, 9));
+               PIX_Cr <= std_logic_vector(to_unsigned(196, 9));
+            elsif col_count = 1398 then
+               -- Should be Red (R)
+               PIX_Y0 <= std_logic_vector(to_unsigned( 63, 9));
+               PIX_Y1 <= std_logic_vector(to_unsigned( 63, 9));
+               PIX_Cb <= std_logic_vector(to_unsigned(101, 9));
+               PIX_Cr <= std_logic_vector(to_unsigned(209, 9));
+            elsif col_count = 1678 then
+               -- Should be Blue (B)
+               PIX_Y0 <= std_logic_vector(to_unsigned( 34, 9));
+               PIX_Y1 <= std_logic_vector(to_unsigned( 34, 9));
+               PIX_Cb <= std_logic_vector(to_unsigned(209, 9));
+               PIX_Cr <= std_logic_vector(to_unsigned(115, 9));
+               
+            end if;
+            
             if col_count = 0 then
                 if active_line = '1' then
                     data(35 downto 0) <= BE & DUMMY & BE & DUMMY;
