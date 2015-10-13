@@ -156,6 +156,40 @@ architecture Behavioral of top_level is
         );
     end component;
 
+    component test_source_800_600_RGB_444_ch4 is
+        port ( 
+            -----------------------------------------------------
+            -- The MSA values (some are range reduced and could 
+            -- be 16 bits ins size)
+            -----------------------------------------------------      
+            M_value              : out std_logic_vector(23 downto 0);
+            N_value              : out std_logic_vector(23 downto 0);
+            H_visible            : out std_logic_vector(11 downto 0);
+            V_visible            : out std_logic_vector(11 downto 0);
+            H_total              : out std_logic_vector(11 downto 0);
+            V_total              : out std_logic_vector(11 downto 0);
+            H_sync_width         : out std_logic_vector(11 downto 0);
+            V_sync_width         : out std_logic_vector(11 downto 0);
+            H_start              : out std_logic_vector(11 downto 0);
+            V_start              : out std_logic_vector(11 downto 0);
+            H_vsync_active_high  : out std_logic;
+            V_vsync_active_high  : out std_logic;
+            flag_sync_clock      : out std_logic;
+            flag_YCCnRGB         : out std_logic;
+            flag_422n444         : out std_logic;
+            flag_YCC_colour_709  : out std_logic;
+            flag_range_reduced   : out std_logic;
+            flag_interlaced_even : out std_logic;
+            flags_3d_Indicators  : out std_logic_vector(1 downto 0);
+            bits_per_colour      : out std_logic_vector(4 downto 0);
+            stream_channel_count : out std_logic_vector(2 downto 0);
+
+            clk    : in  std_logic;
+            ready  : out std_logic;
+            data   : out std_logic_vector(72 downto 0) := (others => '0')
+        );
+    end component;
+
     component insert_main_stream_attrbutes_one_channel is
         port (
             clk                  : std_logic;
@@ -217,6 +251,45 @@ architecture Behavioral of top_level is
     signal bits_per_colour      : std_logic_vector(4 downto 0);
 
     component insert_main_stream_attrbutes_two_channels is
+        port (
+            clk                  : std_logic;
+            -----------------------------------------------------
+            -- This determines how the MSA is packed
+            -----------------------------------------------------      
+            active               : std_logic;
+            -----------------------------------------------------
+            -- The MSA values (some are range reduced and could 
+            -- be 16 bits ins size)
+            -----------------------------------------------------      
+            M_value              : in std_logic_vector(23 downto 0);
+            N_value              : in std_logic_vector(23 downto 0);
+            H_visible            : in std_logic_vector(11 downto 0);
+            V_visible            : in std_logic_vector(11 downto 0);
+            H_total              : in std_logic_vector(11 downto 0);
+            V_total              : in std_logic_vector(11 downto 0);
+            H_sync_width         : in std_logic_vector(11 downto 0);
+            V_sync_width         : in std_logic_vector(11 downto 0);
+            H_start              : in std_logic_vector(11 downto 0);
+            V_start              : in std_logic_vector(11 downto 0);
+            H_vsync_active_high  : in std_logic;
+            V_vsync_active_high  : in std_logic;
+            flag_sync_clock      : in std_logic;
+            flag_YCCnRGB         : in std_logic;
+            flag_422n444         : in std_logic;
+            flag_YCC_colour_709  : in std_logic;
+            flag_range_reduced   : in std_logic;
+            flag_interlaced_even : in std_logic;
+            flags_3d_Indicators  : in std_logic_vector(1 downto 0);
+            bits_per_colour      : in std_logic_vector(4 downto 0);
+
+            -----------------------------------------------------
+            -- The stream of pixel data coming in and out
+            -----------------------------------------------------
+            in_data              : in  std_logic_vector(72 downto 0);
+            out_data             : out std_logic_vector(72 downto 0));
+    end component;
+
+    component insert_main_stream_attrbutes_four_channels is
         port (
             clk                  : std_logic;
             -----------------------------------------------------
@@ -552,7 +625,7 @@ architecture Behavioral of top_level is
     signal tx_debug        : std_logic_vector(7 downto 0);
    
     signal sink_channel_count   : std_logic_vector(2 downto 0) := "000";
-    signal source_channel_count : std_logic_vector(2 downto 0) := "010";
+    signal source_channel_count : std_logic_vector(2 downto 0) := "100";
     signal active_channel_count : std_logic_vector(2 downto 0) := "000";
     signal stream_channel_count : std_logic_vector(2 downto 0) := "000";
 
@@ -707,7 +780,8 @@ i_link_signal_mgmt:  link_signal_mgmt Port map (
         swing_0p8       => swing_0p8);
 
 --i_test_source: test_source_800_600_RGB_444_ch1  port map ( 
-i_test_source: test_source_3840_2160_YCC_422_ch2  port map ( 
+--i_test_source: test_source_3840_2160_YCC_422_ch2  port map ( 
+i_test_source: test_source_800_600_RGB_444_ch4  port map ( 
             M_value              => M_value,
             N_value              => N_value,
             
@@ -738,7 +812,8 @@ i_test_source: test_source_3840_2160_YCC_422_ch2  port map (
         );
 
 --i_insert_main_stream_attrbutes_one_channel: insert_main_stream_attrbutes_one_channel port map (
-i_insert_main_stream_attrbutes_two_channels: insert_main_stream_attrbutes_two_channels port map (
+--i_insert_main_stream_attrbutes_two_channels: insert_main_stream_attrbutes_two_channels port map (
+i_insert_main_stream_attrbutes_four_channels: insert_main_stream_attrbutes_four_channels port map (
             clk                  => symbolclk,
             active               => '1',
             -----------------------------------------------------
