@@ -57,6 +57,7 @@ end entity;
 
 architecture arch of tb_transceiver is
     component Transceiver is
+    generic( use_hw_8b10b_support : std_logic := '0');    
     Port ( mgmt_clk        : in  STD_LOGIC;
            powerup_channel : in  STD_LOGIC_VECTOR;
            gclk27          : in  STD_LOGIC;
@@ -88,7 +89,9 @@ architecture arch of tb_transceiver is
     signal gclk27          : STD_LOGIC := '1';
 begin
 
-uut: transceiver PORT MAP (
+uut: transceiver generic map (
+      use_hw_8b10b_support => '1' 
+   ) PORT MAP (
            mgmt_clk        => clk,
            powerup_channel => powerup_channel,
            gclk27          => gclk27,
@@ -113,10 +116,10 @@ uut: transceiver PORT MAP (
 process(symbolclk)
    begin
       if rising_edge(symbolclk) then
-         if symbols(3 downto 0) = x"2" then                   
-            symbols <= x"00000" & x"00000" & x"003FF" & "00001000010001001011";
+         if symbols(3 downto 0) = x"A" then                   
+            symbols <= x"00000" & x"00000" & "0110111100" & "0110111100"   &   "0110111100" & "0000000000";
          else            
-            symbols <= x"00000" & x"00000" & x"003FF" & "00010000000100000010";
+            symbols <= x"00000" & x"00000" & "0110111100" & "0110111100"   &   "0001001010" & "0001001010";
          end if;
       end if;
    end process;

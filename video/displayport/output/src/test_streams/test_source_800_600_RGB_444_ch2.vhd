@@ -1,9 +1,8 @@
 ----------------------------------------------------------------------------------
--- Module Name: test_source_800_600_RGB_444_ch4 - Behavioral
+-- Module Name: test_source_800_600_RGB_444_ch2 - Behavioral
 --
 -- Description: Generate a valid DisplayPort symbol stream for testing. In this
---              case 800x600 colour bars.  NOTE - COLOUR BARS ARE BROKEN
---              Making 7 bars over 800 pixels over four channels wasn't nice. 
+--              case 800x600 colour bars.   
 -- 
 ----------------------------------------------------------------------------------
 -- FPGA_DisplayPort from https://github.com/hamsternz/FPGA_DisplayPort
@@ -47,14 +46,14 @@
 --------------------------------------------------------------------------------------
 --  Ver | Date       | Change
 --------+------------+---------------------------------------------------------------
---  0.1 | 2015-10-13 | Initial Version
+--  0.1 | 2015-10-15 | Initial Version
 ----------------------------------------------------------------------
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity test_source_800_600_RGB_444_ch4 is
+entity test_source_800_600_RGB_444_ch2 is
     port ( 
         -----------------------------------------------------
         -- The MSA values (some are range reduced and could 
@@ -86,10 +85,10 @@ entity test_source_800_600_RGB_444_ch4 is
         ready  : out std_logic;
         data   : out std_logic_vector(72 downto 0) := (others => '0')
     );
-end test_source_800_600_RGB_444_ch4;
+end test_source_800_600_RGB_444_ch2;
 
-architecture arch of test_source_800_600_RGB_444_ch4 is 
-    type a_test_data_blocks is array (0 to 64*17-1) of std_logic_vector(8 downto 0);
+architecture arch of test_source_800_600_RGB_444_ch2 is 
+    type a_test_data_blocks is array (0 to 64*18-1) of std_logic_vector(8 downto 0);
     
     constant DUMMY  : std_logic_vector(8 downto 0) := "000000011";   -- 0xAA
     constant SPARE  : std_logic_vector(8 downto 0) := "011111111";   -- 0xFF
@@ -151,48 +150,49 @@ architecture arch of test_source_800_600_RGB_444_ch4 is
     DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
     DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
     SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, 
-    
-    --- Block 1 - 8 white pixels and padding
+
+    --- Block 1 - Mains Stream attribuutes, junk and blank end
+    SS,    SS,    MvidH, MvidM, MvidL, HtotH,  
+    HTotL, VtotH, VtotL, HswH,  HswL,  MvidH, 
+    MvidM, MvidL, HstH,  HstL,  VstH,  VstL, 
+    VswH,  VswL,  MvidH, MvidM, MvidL, HwidH,  
+    HwidL, VheiH, VheiL, ZERO,  ZERO,  MvidH, 
+    MvidM, MvidL, NvidH, NvidM, NvidL, MISC0,
+    MISC1, ZERO,  SE,    DUMMY, DUMMY, DUMMY,
+    DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
+    DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, BE,  
+    SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, 
+
+
+    --- Block 2 - 8 white pixels and padding
+    PIX_80, PIX_80, PIX_80, PIX_80, PIX_80, PIX_80, 
     PIX_80, PIX_80, PIX_80, PIX_80, PIX_80, PIX_80, 
     FS,     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  FE,  
-    SPARE,  SPARE,  SPARE,  SPARE,  SPARE,  SPARE, SPARE, SPARE, SPARE, SPARE, 
-
-    --- Block 2 - 2 white pixels and 6 yellow and padding
-    PIX_80, PIX_80, PIX_80, PIX_80, PIX_80, PIX_0, 
-    FS,     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  FE,  
     SPARE,  SPARE,  SPARE,  SPARE,  SPARE,  SPARE, SPARE, SPARE, SPARE, SPARE, 
 
-    --- Block 3 - 8 yellow and padding
+    --- Block 3 - 2 white pixels and 6 yellow and padding
+    PIX_80, PIX_80, PIX_0,  PIX_80, PIX_80, PIX_0,
     PIX_80, PIX_80, PIX_0,  PIX_80, PIX_80, PIX_0, 
     FS,     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  FE,  
     SPARE,  SPARE,  SPARE,  SPARE,  SPARE,  SPARE, SPARE, SPARE, SPARE, SPARE, 
 
-    --- Block 4 - 4 yellow and 4 cyan padding
-    PIX_80, PIX_80, PIX_0,  PIX_0,  PIX_80, PIX_80, 
+    --- Block 4 - 8 yellow and padding
+    PIX_80, PIX_80, PIX_0,  PIX_80, PIX_80, PIX_0,
+    PIX_80, PIX_80, PIX_0,  PIX_80, PIX_80, PIX_0, 
     FS,     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
@@ -200,11 +200,11 @@ architecture arch of test_source_800_600_RGB_444_ch4 is
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  FE,  
     SPARE,  SPARE,  SPARE,  SPARE,  SPARE,  SPARE, SPARE, SPARE, SPARE, SPARE, 
 
-    --- Block 5 - 8 cyan padding
+    --- Block 5 - 4 yellow and 4 cyan padding
     PIX_0,  PIX_80, PIX_80, PIX_0,  PIX_80, PIX_80,
+    PIX_0,  PIX_80, PIX_80, PIX_0,  PIX_80, PIX_80, 
     FS,     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
@@ -212,11 +212,11 @@ architecture arch of test_source_800_600_RGB_444_ch4 is
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  FE,  
     SPARE,  SPARE,  SPARE,  SPARE,  SPARE,  SPARE, SPARE, SPARE, SPARE, SPARE, 
 
-    --- Block 6 - 6 cyan and 2 green + padding
+    --- Block 6 - 8 cyan padding
     PIX_0,  PIX_80, PIX_80, PIX_0,  PIX_80, PIX_80,
+    PIX_0,  PIX_80, PIX_80, PIX_0,  PIX_80, PIX_80, 
     FS,     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
@@ -224,35 +224,47 @@ architecture arch of test_source_800_600_RGB_444_ch4 is
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  FE,  
     SPARE,  SPARE,  SPARE,  SPARE,  SPARE,  SPARE, SPARE, SPARE, SPARE, SPARE, 
 
-    --- Block 7 - 8 green + padding
+    --- Block 7 - 6 cyan and 2 green + padding
+    PIX_0,  PIX_80, PIX_80, PIX_0,  PIX_80, PIX_80,
+    PIX_0,  PIX_80, PIX_80, PIX_0,  PIX_80, PIX_80, 
+    FS,     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  FE,  
+    SPARE,  SPARE,  SPARE,  SPARE,  SPARE,  SPARE, SPARE, SPARE, SPARE, SPARE, 
+
+    --- Block 8 - 8 green + padding
+    PIX_0,  PIX_80, PIX_0,  PIX_0,  PIX_80, PIX_0, 
     PIX_0,  PIX_80, PIX_0,  PIX_0,  PIX_80, PIX_0, 
     FS,     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  FE,  
     SPARE,  SPARE,  SPARE,  SPARE,  SPARE,  SPARE, SPARE, SPARE, SPARE, SPARE, 
 
-    --- Block 8 - 8 magent + padding
+    --- Block 9 - 8 magent + padding
+    PIX_80, PIX_0,  PIX_80, PIX_80, PIX_0,  PIX_80, 
     PIX_80, PIX_0,  PIX_80, PIX_80, PIX_0,  PIX_80, 
     FS,     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  FE,  
     SPARE,  SPARE,  SPARE,  SPARE,  SPARE,  SPARE, SPARE, SPARE, SPARE, SPARE, 
 
-    --- Block 9 - 2 magent + 6 red + padding
+    --- Block 10 - 2 magent + 6 red + padding
+    PIX_80, PIX_0,  PIX_0,  PIX_80, PIX_0,  PIX_0, 
     PIX_80, PIX_0,  PIX_0,  PIX_80, PIX_0,  PIX_0, 
     FS,     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
@@ -260,11 +272,11 @@ architecture arch of test_source_800_600_RGB_444_ch4 is
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  FE,  
     SPARE,  SPARE,  SPARE,  SPARE,  SPARE,  SPARE, SPARE, SPARE, SPARE, SPARE, 
 
-    --- Block 10 - 4 red + padding
+    --- Block 11 - 4 red + padding
+    PIX_80, PIX_0,  PIX_0,  PIX_80, PIX_0,  PIX_0, 
     PIX_80, PIX_0,  PIX_0,  PIX_80, PIX_0,  PIX_0, 
     FS,     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
@@ -272,25 +284,25 @@ architecture arch of test_source_800_600_RGB_444_ch4 is
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  FE,  
     SPARE,  SPARE,  SPARE,  SPARE,  SPARE,  SPARE, SPARE, SPARE, SPARE, SPARE, 
 
-    --- Block 11 - 4 red + 4 blue + padding
+    --- Block 12 - 4 red + 4 blue + padding
+    PIX_0,  PIX_0,  PIX_80, PIX_0,  PIX_0,  PIX_80, 
     PIX_0,  PIX_0,  PIX_80, PIX_0,  PIX_0,  PIX_80, 
     FS,     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  FE,  
     SPARE,  SPARE,  SPARE,  SPARE,  SPARE,  SPARE, SPARE, SPARE, SPARE, SPARE, 
 
-    --- Block 12 - 8 Blue + padding
+    --- Block 13 - 8 Blue + padding
+    PIX_0,  PIX_0,  PIX_80, PIX_0,  PIX_0,  PIX_80, 
     PIX_0,  PIX_0,  PIX_80, PIX_0,  PIX_0,  PIX_80, 
     FS,     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  FE,  
@@ -298,44 +310,44 @@ architecture arch of test_source_800_600_RGB_444_ch4 is
 
 
 
-    --- Block 13 - 8 x Blue, Blank Start, VB-ID (no vsync), Mvid, MAud and junk
+    --- Block 14 - 8 x Blue, Blank Start, VB-ID (no vsync), Mvid, MAud and junk
 
     PIX_0,  PIX_0,  PIX_80, PIX_0,  PIX_0,  PIX_80, 
-    BS,     VB_NVS, MVID,   MAUD,   DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    PIX_0,  PIX_0,  PIX_80, PIX_0,  PIX_0,  PIX_80, 
+    BS,     VB_NVS, MVID,   MAUD,   VB_NVS, MVID,  
+    MAUD,   VB_NVS, MVID,   MAUD,   VB_NVS, MVID,      
+    MAUD,   DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     SPARE,  SPARE,  SPARE,  SPARE,  SPARE,  SPARE, SPARE, SPARE, SPARE, SPARE, 
 
-    --- Block 14 - 8 x Blue, Blank Start, VB-ID (+vsync), Mvid, MAud and junk
+    --- Block 15 - 8 x Blue, Blank Start, VB-ID (+vsync), Mvid, MAud and junk
     PIX_0,  PIX_0,  PIX_80, PIX_0,  PIX_0,  PIX_80, 
-    BS,     VB_VS,  MVID,   MAUD,   DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
-    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    PIX_0,  PIX_0,  PIX_80, PIX_0,  PIX_0,  PIX_80, 
+    BS,     VB_VS,  MVID,   MAUD,   VB_VS,  MVID,  
+    MAUD,   VB_VS,  MVID,   MAUD,   VB_VS,  MVID,      
+    MAUD,   DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     SPARE,  SPARE,  SPARE,  SPARE,  SPARE,  SPARE, SPARE, SPARE, SPARE, SPARE, 
 
-    --- Block 15 - DUMMY,Blank Start, VB-ID (+vsync), Mvid, MAud and junk
-    DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
-    BS,    VB_VS, MVID,  MAUD,  DUMMY, DUMMY, 
-    DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
-    DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
-    DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
-    DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
-    DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY,
-    DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
-    DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
-    SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE,
+    --- Block 16 - DUMMY,Blank Start, VB-ID (+vsync), Mvid, MAud and junk
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    BS,     VB_VS,  MVID,   MAUD,   VB_VS,  MVID,  
+    MAUD,   VB_VS,  MVID,   MAUD,   VB_VS,  MVID,      
+    MAUD,   DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    SPARE,  SPARE,  SPARE,  SPARE,  SPARE,  SPARE, SPARE, SPARE, SPARE, SPARE,
 
-    --- Block 16 - just blank end
+    --- Block 17 - just blank end
     DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
     DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
     DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY,
@@ -345,18 +357,11 @@ architecture arch of test_source_800_600_RGB_444_ch4 is
     DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
     DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY,
     DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, BE,  
-    SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE
-    ); 
+    SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE, SPARE); 
 
     signal index : unsigned (10 downto 0) := (others => '0');  -- Index up to 32 x 64 symbol blocks
-    signal d00: std_logic_vector(8 downto 0)  := (others => '0');
-    signal d01: std_logic_vector(8 downto 0)  := (others => '0');
-    signal d10: std_logic_vector(8 downto 0)  := (others => '0');
-    signal d11: std_logic_vector(8 downto 0)  := (others => '0');
-    signal d20: std_logic_vector(8 downto 0)  := (others => '0');
-    signal d21: std_logic_vector(8 downto 0)  := (others => '0');
-    signal d30: std_logic_vector(8 downto 0)  := (others => '0');
-    signal d31: std_logic_vector(8 downto 0)  := (others => '0');
+    signal d0: std_logic_vector(8 downto 0)  := (others => '0');
+    signal d1: std_logic_vector(8 downto 0)  := (others => '0');
     signal line_count : unsigned(9 downto 0) := (others => '0');
     signal row_count  : unsigned(7 downto 0) := (others => '0');
 
@@ -385,25 +390,17 @@ begin
     flags_3d_Indicators  <= (others => '0');
     bits_per_colour      <= "01000";
 
-    stream_channel_count <= "100"; 
+    stream_channel_count <= "010"; 
     ready              <= '1';
     data(72)           <= switch_point;
-    data(71 downto 0)  <= d31 & d30 & d21 & d20 & d11 & d10 & d01 & d00; 
+    data(71 downto 18) <= (others => '0');
+    data(17 downto 0)  <= d1 & d0; 
 
 process(clk)
      begin
         if rising_edge(clk) then
-            -----------------------------------------
-            -- All four channels carry identical data
-            -----------------------------------------
-            d00   <= test_data_blocks(to_integer(index+0));
-            d01   <= test_data_blocks(to_integer(index+1));
-            d10   <= test_data_blocks(to_integer(index+0));
-            d11   <= test_data_blocks(to_integer(index+1));
-            d20   <= test_data_blocks(to_integer(index+0));
-            d21   <= test_data_blocks(to_integer(index+1));
-            d30   <= test_data_blocks(to_integer(index+0));
-            d31   <= test_data_blocks(to_integer(index+1));
+            d0   <= test_data_blocks(to_integer(index+0));
+            d1   <= test_data_blocks(to_integer(index+1));
             if index(5 downto 0) = 52 then
                 index(5 downto 0) <= (others => '0');
                 if row_count = 131 then 
@@ -418,74 +415,75 @@ process(clk)
                 end if;
 
     --- Block 0 - Junk
-    --- Block 1  - 8 white pixels and padding
-    --- Block 2  - 2 white pixels and 6 yellow and padding
-    --- Block 3  - 8 yellow and padding
-    --- Block 4  - 4 yellow and 4 cyan padding
-    --- Block 5  - 8 cyan padding
-    --- Block 6  - 6 cyan and 2 green + padding
-    --- Block 7  - 8 green + padding
-    --- Block 8  - 8 magent + padding
-    --- Block 9  - 2 magent + 6 red + padding
-    --- Block 10 - 8 red  + padding
-    --- Block 11 - 4 red + 4 blue + padding
-    --- Block 12 - 8 Blue + padding
-    --- Block 13 - 8 x Blue, Blank Start, VB-ID (no vsync), Mvid, MAud and junk
-    --- Block 14 - 8 x Blue, Blank Start, VB-ID (+vsync), Mvid, MAud and junk
-    --- Block 15 - DUMMY,Blank Start, VB-ID (+vsync), Mvid, MAud and junk
-    --- Block 16 - just blank end
+    --- Block 1  - Mains Stream attribuutes, junk and blank end
+    --- Block 2  - 8 white pixels and padding
+    --- Block 3  - 2 white pixels and 6 yellow and padding
+    --- Block 4  - 8 yellow and padding
+    --- Block 5  - 4 yellow and 4 cyan padding
+    --- Block 6  - 8 cyan padding
+    --- Block 7  - 6 cyan and 2 green + padding
+    --- Block 8  - 8 green + padding
+    --- Block 9  - 8 magent + padding
+    --- Block 10 - 2 magent + 6 red + padding
+    --- Block 11 - 8 red  + padding
+    --- Block 12 - 4 red + 4 blue + padding
+    --- Block 13 - 8 Blue + padding
+    --- Block 14 - 8 x Blue, Blank Start, VB-ID (no vsync), Mvid, MAud and junk
+    --- Block 15 - 8 x Blue, Blank Start, VB-ID (+vsync), Mvid, MAud and junk
+    --- Block 16 - DUMMY,Blank Start, VB-ID (+vsync), Mvid, MAud and junk
+    --- Block 17 - just blank end
                 
                 if line_count = 0 then
-                    if    row_count <  1 then  index(10 downto 6) <= "10000";  -- Just blank end BE
-                    elsif row_count < 14 then  index(10 downto 6) <= "00001";  -- White *8 plus fill
-                    elsif row_count < 15 then  index(10 downto 6) <= "00010";  -- White + Yellow plus fill                                                 
-                    elsif row_count < 29 then  index(10 downto 6) <= "00011";  -- Yellow Pixels plus fill                                                 
-                    elsif row_count < 30 then  index(10 downto 6) <= "00100";  -- Yellow + Cyan plus fill                                                 
-                    elsif row_count < 42 then  index(10 downto 6) <= "00101";  -- Cyan Pixels plus fill                                                 
-                    elsif row_count < 43 then  index(10 downto 6) <= "00110";  -- Cyan + green Pixels plus fill                                                 
-                    elsif row_count < 56 then  index(10 downto 6) <= "00111";  -- Green plus fill                                                 
-                    elsif row_count < 71 then  index(10 downto 6) <= "01000";  -- Magenta plus fill                                                       
-                    elsif row_count < 72 then  index(10 downto 6) <= "01001";  -- Magenta + red plus fill                                                 
-                    elsif row_count < 86 then  index(10 downto 6) <= "01010";  -- red Pixels plus fill                                                 
-                    elsif row_count < 87 then  index(10 downto 6) <= "01011";  -- red + blue Pixels plus fill                                                 
-                    elsif row_count < 100 then index(10 downto 6) <= "01100";  -- blue plus fill                                                 
-                    elsif row_count = 100 then index(10 downto 6) <= "01101";  -- Pixels BS and VS-ID block (no VBLANK flag)       
+                    if    row_count <  1 then  index(10 downto 6) <= "10001";  -- Just blank end BE
+                    elsif row_count < 14 then  index(10 downto 6) <= "00010";  -- White *8 plus fill
+                    elsif row_count < 15 then  index(10 downto 6) <= "00011";  -- White + Yellow plus fill                                                 
+                    elsif row_count < 29 then  index(10 downto 6) <= "00100";  -- Yellow Pixels plus fill                                                 
+                    elsif row_count < 30 then  index(10 downto 6) <= "00101";  -- Yellow + Cyan plus fill                                                 
+                    elsif row_count < 42 then  index(10 downto 6) <= "00110";  -- Cyan Pixels plus fill                                                 
+                    elsif row_count < 43 then  index(10 downto 6) <= "00111";  -- Cyan + green Pixels plus fill                                                 
+                    elsif row_count < 56 then  index(10 downto 6) <= "01000";  -- Green plus fill                                                 
+                    elsif row_count < 71 then  index(10 downto 6) <= "01001";  -- Magenta plus fill                                                       
+                    elsif row_count < 72 then  index(10 downto 6) <= "01010";  -- Magenta + red plus fill                                                 
+                    elsif row_count < 86 then  index(10 downto 6) <= "01011";  -- red Pixels plus fill                                                 
+                    elsif row_count < 87 then  index(10 downto 6) <= "01100";  -- red + blue Pixels plus fill                                                 
+                    elsif row_count < 100 then index(10 downto 6) <= "01101";  -- blue plus fill                                                 
+                    elsif row_count = 100 then index(10 downto 6) <= "01110";  -- Pixels BS and VS-ID block (no VBLANK flag)       
                     else
                         index(10 downto 6) <= "00000";  -- Dummy symbols
                     end if;
                 elsif line_count < 599 then -- lines of active video (except first and last)
-                    if    row_count <  1 then  index(10 downto 6) <= "10000";  -- Just blank end BE
-                    elsif row_count < 14 then  index(10 downto 6) <= "00001";  -- White *8 plus fill
-                    elsif row_count < 15 then  index(10 downto 6) <= "00010";  -- White + Yellow plus fill                                                 
-                    elsif row_count < 29 then  index(10 downto 6) <= "00011";  -- Yellow Pixels plus fill                                                 
-                    elsif row_count < 30 then  index(10 downto 6) <= "00100";  -- Yellow + Cyan plus fill                                                 
-                    elsif row_count < 42 then  index(10 downto 6) <= "00101";  -- Cyan Pixels plus fill                                                 
-                    elsif row_count < 43 then  index(10 downto 6) <= "00110";  -- Cyan + green Pixels plus fill                                                 
-                    elsif row_count < 56 then  index(10 downto 6) <= "00111";  -- Green plus fill                                                 
-                    elsif row_count < 71 then  index(10 downto 6) <= "01000";  -- Magenta plus fill                                                       
-                    elsif row_count < 72 then  index(10 downto 6) <= "01001";  -- Magenta + red plus fill                                                 
-                    elsif row_count < 86 then  index(10 downto 6) <= "01010";  -- red Pixels plus fill                                                 
-                    elsif row_count < 87 then  index(10 downto 6) <= "01011";  -- red + blue Pixels plus fill                                                 
-                    elsif row_count < 100 then index(10 downto 6) <= "01100";  -- blue plus fill                                                 
-                    elsif row_count = 100 then index(10 downto 6) <= "01101";  -- Pixels BS and VS-ID block (no VBLANK flag)       
+                    if    row_count <  1 then  index(10 downto 6) <= "10001";  -- Just blank end BE
+                    elsif row_count < 14 then  index(10 downto 6) <= "00010";  -- White *8 plus fill
+                    elsif row_count < 15 then  index(10 downto 6) <= "00011";  -- White + Yellow plus fill                                                 
+                    elsif row_count < 29 then  index(10 downto 6) <= "00100";  -- Yellow Pixels plus fill                                                 
+                    elsif row_count < 30 then  index(10 downto 6) <= "00101";  -- Yellow + Cyan plus fill                                                 
+                    elsif row_count < 42 then  index(10 downto 6) <= "00110";  -- Cyan Pixels plus fill                                                 
+                    elsif row_count < 43 then  index(10 downto 6) <= "00111";  -- Cyan + green Pixels plus fill                                                 
+                    elsif row_count < 56 then  index(10 downto 6) <= "01000";  -- Green plus fill                                                 
+                    elsif row_count < 71 then  index(10 downto 6) <= "01001";  -- Magenta plus fill                                                       
+                    elsif row_count < 72 then  index(10 downto 6) <= "01010";  -- Magenta + red plus fill                                                 
+                    elsif row_count < 86 then  index(10 downto 6) <= "01011";  -- red Pixels plus fill                                                 
+                    elsif row_count < 87 then  index(10 downto 6) <= "01100";  -- red + blue Pixels plus fill                                                 
+                    elsif row_count < 100 then index(10 downto 6) <= "01101";  -- blue plus fill                                                 
+                    elsif row_count = 100 then index(10 downto 6) <= "01110";  -- Pixels BS and VS-ID block (no VBLANK flag)       
                     else
                         index(10 downto 6) <= "00000";  -- Dummy symbols
                     end if;
                 elsif line_count = 599 then  -- Last line of active video
-                    if    row_count <  1 then  index(10 downto 6) <= "10000";  -- Just blank end BE
-                    elsif row_count < 14 then  index(10 downto 6) <= "00001";  -- White *8 plus fill
-                    elsif row_count < 15 then  index(10 downto 6) <= "00010";  -- White + Yellow plus fill                                                 
-                    elsif row_count < 29 then  index(10 downto 6) <= "00011";  -- Yellow Pixels plus fill                                                 
-                    elsif row_count < 30 then  index(10 downto 6) <= "00100";  -- Yellow + Cyan plus fill                                                 
-                    elsif row_count < 42 then  index(10 downto 6) <= "00101";  -- Cyan Pixels plus fill                                                 
-                    elsif row_count < 43 then  index(10 downto 6) <= "00110";  -- Cyan + green Pixels plus fill                                                 
-                    elsif row_count < 56 then  index(10 downto 6) <= "00111";  -- Green plus fill                                                 
-                    elsif row_count < 71 then  index(10 downto 6) <= "01000";  -- Magenta plus fill                                                       
-                    elsif row_count < 72 then  index(10 downto 6) <= "01001";  -- Magenta + red plus fill                                                 
-                    elsif row_count < 86 then  index(10 downto 6) <= "01010";  -- red Pixels plus fill                                                 
-                    elsif row_count < 87 then  index(10 downto 6) <= "01011";  -- red + blue Pixels plus fill                                                 
-                    elsif row_count < 100 then index(10 downto 6) <= "01100";  -- blue plus fill                                                 
-                    elsif row_count = 100 then index(10 downto 6) <= "01110";  -- blue Pixels BS and VS-ID block (with VBLANK flag)       
+                    if    row_count <  1 then  index(10 downto 6) <= "10001";  -- Just blank end
+                    elsif row_count < 14 then  index(10 downto 6) <= "00010";  -- White *8 plus fill
+                    elsif row_count < 15 then  index(10 downto 6) <= "00011";  -- White + Yellow plus fill                                                 
+                    elsif row_count < 29 then  index(10 downto 6) <= "00100";  -- Yellow Pixels plus fill                                                 
+                    elsif row_count < 30 then  index(10 downto 6) <= "00101";  -- Yellow + Cyan plus fill                                                 
+                    elsif row_count < 42 then  index(10 downto 6) <= "00110";  -- Cyan Pixels plus fill                                                 
+                    elsif row_count < 43 then  index(10 downto 6) <= "00111";  -- Cyan + green Pixels plus fill                                                 
+                    elsif row_count < 56 then  index(10 downto 6) <= "01000";  -- Green plus fill                                                 
+                    elsif row_count < 71 then  index(10 downto 6) <= "01001";  -- Magenta plus fill                                                       
+                    elsif row_count < 72 then  index(10 downto 6) <= "01010";  -- Magenta + red plus fill                                                 
+                    elsif row_count < 86 then  index(10 downto 6) <= "01011";  -- red Pixels plus fill                                                 
+                    elsif row_count < 87 then  index(10 downto 6) <= "01100";  -- red + blue Pixels plus fill                                                 
+                    elsif row_count < 100 then index(10 downto 6) <= "01101";  -- blue plus fill                                                 
+                    elsif row_count = 100 then index(10 downto 6) <= "01111";  -- blue Pixels BS and VS-ID block (with VBLANK flag)       
                     else
                         index(10 downto 6) <= "00000";  -- Dummy symbols
                     end if;
@@ -500,7 +498,7 @@ process(clk)
                     end if;
                     
                     if row_count = 100 then
-                        index(10 downto 6) <= "01111";  -- Dummy symbols, BS and VS-ID block (with VBLANK flag)                        
+                        index(10 downto 6) <= "10000";  -- Dummy symbols, BS and VS-ID block (with VBLANK flag)                        
                     else
                         index(10 downto 6) <= "00000";  -- Dummy symbols
                     end if;

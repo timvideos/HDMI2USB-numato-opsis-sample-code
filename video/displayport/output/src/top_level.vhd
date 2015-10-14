@@ -72,6 +72,7 @@ entity top_level is
 end top_level;
 
 architecture Behavioral of top_level is
+   constant use_hw_8b10b_support : std_logic := '0';
     component hotplug_decode is
         port (clk     : in  std_logic;
               hpd     : in  std_logic;
@@ -123,6 +124,40 @@ architecture Behavioral of top_level is
     end component;
 
     component test_source_3840_2160_YCC_422_ch2 is
+        port ( 
+            -----------------------------------------------------
+            -- The MSA values (some are range reduced and could 
+            -- be 16 bits ins size)
+            -----------------------------------------------------      
+            M_value              : out std_logic_vector(23 downto 0);
+            N_value              : out std_logic_vector(23 downto 0);
+            H_visible            : out std_logic_vector(11 downto 0);
+            V_visible            : out std_logic_vector(11 downto 0);
+            H_total              : out std_logic_vector(11 downto 0);
+            V_total              : out std_logic_vector(11 downto 0);
+            H_sync_width         : out std_logic_vector(11 downto 0);
+            V_sync_width         : out std_logic_vector(11 downto 0);
+            H_start              : out std_logic_vector(11 downto 0);
+            V_start              : out std_logic_vector(11 downto 0);
+            H_vsync_active_high  : out std_logic;
+            V_vsync_active_high  : out std_logic;
+            flag_sync_clock      : out std_logic;
+            flag_YCCnRGB         : out std_logic;
+            flag_422n444         : out std_logic;
+            flag_YCC_colour_709  : out std_logic;
+            flag_range_reduced   : out std_logic;
+            flag_interlaced_even : out std_logic;
+            flags_3d_Indicators  : out std_logic_vector(1 downto 0);
+            bits_per_colour      : out std_logic_vector(4 downto 0);
+            stream_channel_count : out std_logic_vector(2 downto 0);
+
+            clk    : in  std_logic;
+            ready  : out std_logic;
+            data   : out std_logic_vector(72 downto 0) := (others => '0')
+        );
+    end component;
+
+    component test_source_800_600_RGB_444_ch2 is
         port ( 
             -----------------------------------------------------
             -- The MSA values (some are range reduced and could 
@@ -397,6 +432,7 @@ architecture Behavioral of top_level is
     end component;
     
     component Transceiver is
+    generic( use_hw_8b10b_support : std_logic);
     Port ( mgmt_clk        : in  STD_LOGIC;
            powerup_channel : in  STD_LOGIC_vector;
            debug           : out std_logic_vector(7 downto 0);
@@ -779,9 +815,10 @@ i_link_signal_mgmt:  link_signal_mgmt Port map (
         swing_0p6       => swing_0p6,
         swing_0p8       => swing_0p8);
 
---i_test_source: test_source_800_600_RGB_444_ch1  port map ( 
 --i_test_source: test_source_3840_2160_YCC_422_ch2  port map ( 
-i_test_source: test_source_800_600_RGB_444_ch4  port map ( 
+--i_test_source: test_source_800_600_RGB_444_ch1  port map ( 
+i_test_source: test_source_800_600_RGB_444_ch2  port map ( 
+--i_test_source: test_source_800_600_RGB_444_ch4  port map ( 
             M_value              => M_value,
             N_value              => N_value,
             
@@ -812,8 +849,8 @@ i_test_source: test_source_800_600_RGB_444_ch4  port map (
         );
 
 --i_insert_main_stream_attrbutes_one_channel: insert_main_stream_attrbutes_one_channel port map (
---i_insert_main_stream_attrbutes_two_channels: insert_main_stream_attrbutes_two_channels port map (
-i_insert_main_stream_attrbutes_four_channels: insert_main_stream_attrbutes_four_channels port map (
+i_insert_main_stream_attrbutes_two_channels: insert_main_stream_attrbutes_two_channels port map (
+--i_insert_main_stream_attrbutes_four_channels: insert_main_stream_attrbutes_four_channels port map (
             clk                  => symbolclk,
             active               => '1',
             -----------------------------------------------------
@@ -869,7 +906,7 @@ i_scrambler_reset_inserter: scrambler_reset_inserter
             out_data  => sr_inserted_data
         );
 
-g_per_channel: for i in 0 to lnk_j8_lane_p'high generate
+g_per_channel: for i in 0 to 3 generate  -- lnk_j8_lane_p'high
 
 i_scrambler:  scrambler
         port map ( 
@@ -893,6 +930,10 @@ i_train_channel: training_and_channel_delay port map (
         out_data1forceneg => force_parity_neg(1+i*2)
     );
 
+   ----------------------------------------------
+   -- Soft 8b/10b encoder
+   ----------------------------------------------
+g2: if use_hw_8b10b_support = '0' generate
 i_data_to_8b10b: data_to_8b10b port map ( 
         clk      => symbolclk,
         in_data  => final_data(17+i*18 downto 0+i*18),
@@ -900,8 +941,17 @@ i_data_to_8b10b: data_to_8b10b port map (
         forceneg => force_parity_neg(1+i*2 downto 0+i*2)
         );
     end generate;
+g3: if use_hw_8b10b_support = '1' generate
+      symbols(19+i*20 downto 0+i*20) <= force_parity_neg(1+i*2) & final_data(17+i*18 downto 9+i*18) &
+                                        force_parity_neg(0+i*2) & final_data( 8+i*18 downto 0+i*18);
+    end generate;
+    end generate;  --- For FOR GENERATE loop
 
-i_tx0: Transceiver Port map ( 
+----------------------------------------------------------------------
+
+i_tx0: Transceiver generic map (
+      use_hw_8b10b_support => use_hw_8b10b_support
+   ) Port map ( 
        mgmt_clk        => gclk,
        powerup_channel => powerup_channel,
        tx_running      => tx_running,

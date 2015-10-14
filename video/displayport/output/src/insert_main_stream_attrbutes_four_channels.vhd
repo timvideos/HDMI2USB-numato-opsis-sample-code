@@ -147,7 +147,7 @@ process(clk)
                 when "00110" => out_data(17 downto  0) <= "0" & "0000" & H_total(11 downto 8)   & "0" & M_value( 7 downto  0);
                 when "00111" => out_data(17 downto  0) <= "0" & "0000" & V_total(11 downto 8)   & "0" & H_total( 7 downto 0);
                 when "01000" => out_data(17 downto  0) <= "0" & H_vsync_active_high & "000" & H_sync_width(11 downto 8) & "0" & V_total( 7 downto 0);
-                when "01001" => out_data(17 downto  0) <= SE                                  & "0" & H_sync_width(7 downto 0);
+                when "01001" => out_data(17 downto  0) <= SE                                    & "0" & H_sync_width(7 downto 0);
                 when others  => NULL; 
             end case;
 
@@ -172,10 +172,10 @@ process(clk)
                 when "00011" => NULL; -- reserved for VB-ID, Maud, Mvid
                 when "00100" => out_data(53 downto 36) <= SS & SS; 
                 when "00101" => out_data(53 downto 36) <= "0" & M_value(15 downto  8)           & "0" & M_value(23 downto 16);
-                when "00110" => out_data(53 downto 36) <= "0" & "0000" & H_visible(11 downto 8) &"0" & M_value( 7 downto 0);
+                when "00110" => out_data(53 downto 36) <= "0" & "0000" & H_visible(11 downto 8) & "0" & M_value( 7 downto 0);
                 when "00111" => out_data(53 downto 36) <= "0" & "0000" & V_visible(11 downto 8) & "0" & H_visible( 7 downto 0);
-                when "01000" => out_data(53 downto 36) <= "0" & "00000000"                      &"0" & V_visible( 7 downto 0);
-                when "01001" => out_data(53 downto 36) <= SE                                    &"0" & "00000000";
+                when "01000" => out_data(53 downto 36) <= "0" & "00000000"                      & "0" & V_visible( 7 downto 0);
+                when "01001" => out_data(53 downto 36) <= SE                                    & "0" & "00000000";
                 when others  => NULL; 
             end case;
 
@@ -196,7 +196,7 @@ process(clk)
             -----------------------------------------------------------
             -- Update the counter
             ------------------------------------------------------------
-            if count = "01001" then
+            if count = "01010" then
                 count <= (others => '0');
             elsif count /= "00000" then
                 count <= count + 1;
