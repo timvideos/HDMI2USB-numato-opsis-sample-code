@@ -63,7 +63,6 @@ entity Transceiver is
     generic( use_hw_8b10b_support : std_logic := '0');
     Port ( mgmt_clk        : in  STD_LOGIC;
            powerup_channel : in  STD_LOGIC_VECTOR(3 downto 0);
-           gclk27          : in  STD_LOGIC;
            debug           : out std_logic_vector(7 downto 0);
 
            preemp_0p0      : in  STD_LOGIC;
@@ -129,8 +128,6 @@ architecture Behavioral of transceiver is
            txpowerdown       : out STD_LOGIC_VECTOR(1 downto 0);
            gtpresetdone      : in  STD_LOGIC);
     end component;
-
-    signal powerdown_channel : STD_LOGIC_VECTOR(3 downto 0);
 
     signal refclk        : std_logic_vector(3 downto 0);
 
@@ -199,8 +196,6 @@ gclk135_buf : BUFG
 
     pll_in_use <= (0=>'1', others => '1');
     
-    powerdown_channel <= not powerup_channel;
-   
     symbolclk    <= txusrclk2_buffered;
     
     preemp_level <= "110" when preemp_6p0 = '1' else   -- +6.0 db from table 3-30 in UG476

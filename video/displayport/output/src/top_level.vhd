@@ -56,7 +56,6 @@ use IEEE.NUMERIC_STD.ALL;
 entity top_level is
     port ( 
         gclk                : in    std_logic;        
-        gclk27              : in    std_logic;        
         g22                 : out   std_logic := '1';
         debug               : out   std_logic_vector(1 downto 0) := (others => '0');
         ------------------------------
@@ -73,371 +72,59 @@ end top_level;
 
 architecture Behavioral of top_level is
    constant use_hw_8b10b_support : std_logic := '0';
-    component hotplug_decode is
-        port (clk     : in  std_logic;
-              hpd     : in  std_logic;
-              irq     : out std_logic := '0';
-              present : out std_logic := '0');
-    end component;
+
+	COMPONENT channel_management
+	PORT(
+		clk100               : IN std_logic;
+      debug                : out std_logic_vector(7 downto 0);
+		hpd                  : IN std_logic;
+		stream_channel_count : IN std_logic_vector(2 downto 0);
+		source_channel_count : IN std_logic_vector(2 downto 0);
+		tx_clock_train       : out std_logic;
+		tx_align_train       : out std_logic;
+		tx_running           : IN std_logic_vector(3 downto 0);    
+		aux_tx_p             : INOUT std_logic;
+		aux_tx_n             : INOUT std_logic;
+		aux_rx_p             : INOUT std_logic;
+		aux_rx_n             : INOUT std_logic;      
+		tx_powerup_channel   : OUT std_logic_vector(3 downto 0);
+		tx_preemp_0p0        : OUT std_logic;
+		tx_preemp_3p5        : OUT std_logic;
+		tx_preemp_6p0        : OUT std_logic;
+		tx_swing_0p4         : OUT std_logic;
+		tx_swing_0p6         : OUT std_logic;
+		tx_swing_0p8         : OUT std_logic;
+      tx_link_established  : OUT std_logic
+		);
+	END COMPONENT;
 
     component test_source is
         port ( 
             clk          : in  std_logic;
+            stream_channel_count : out std_logic_vector(2 downto 0);
             ready        : out std_logic;
             data         : out std_logic_vector(72 downto 0)
         );
     end component;
     
-    
-    component test_source_800_600_RGB_444_ch1 is
-        port ( 
-            -----------------------------------------------------
-            -- The MSA values (some are range reduced and could 
-            -- be 16 bits ins size)
-            -----------------------------------------------------      
-            M_value              : out std_logic_vector(23 downto 0);
-            N_value              : out std_logic_vector(23 downto 0);
-            H_visible            : out std_logic_vector(11 downto 0);
-            V_visible            : out std_logic_vector(11 downto 0);
-            H_total              : out std_logic_vector(11 downto 0);
-            V_total              : out std_logic_vector(11 downto 0);
-            H_sync_width         : out std_logic_vector(11 downto 0);
-            V_sync_width         : out std_logic_vector(11 downto 0);
-            H_start              : out std_logic_vector(11 downto 0);
-            V_start              : out std_logic_vector(11 downto 0);
-            H_vsync_active_high  : out std_logic;
-            V_vsync_active_high  : out std_logic;
-            flag_sync_clock      : out std_logic;
-            flag_YCCnRGB         : out std_logic;
-            flag_422n444         : out std_logic;
-            flag_YCC_colour_709  : out std_logic;
-            flag_range_reduced   : out std_logic;
-            flag_interlaced_even : out std_logic;
-            flags_3d_Indicators  : out std_logic_vector(1 downto 0);
-            bits_per_colour      : out std_logic_vector(4 downto 0);
-            stream_channel_count : out std_logic_vector(2 downto 0);
-
-            clk    : in  std_logic;
-            ready  : out std_logic;
-            data   : out std_logic_vector(72 downto 0) := (others => '0')
+    COMPONENT main_stream_processing
+        generic( use_hw_8b10b_support : std_logic);
+        PORT(
+           symbol_clk          : IN  std_logic;
+           tx_link_established : IN  std_logic;
+           source_ready        : IN  std_logic;
+           tx_clock_train      : IN  std_logic;
+           tx_align_train      : IN  std_logic;
+           in_data             : IN  std_logic_vector(72 downto 0);          
+           tx_symbols          : OUT std_logic_vector(79 downto 0)
         );
-    end component;
+    END COMPONENT;
 
-    component test_source_3840_2160_YCC_422_ch2 is
-        port ( 
-            -----------------------------------------------------
-            -- The MSA values (some are range reduced and could 
-            -- be 16 bits ins size)
-            -----------------------------------------------------      
-            M_value              : out std_logic_vector(23 downto 0);
-            N_value              : out std_logic_vector(23 downto 0);
-            H_visible            : out std_logic_vector(11 downto 0);
-            V_visible            : out std_logic_vector(11 downto 0);
-            H_total              : out std_logic_vector(11 downto 0);
-            V_total              : out std_logic_vector(11 downto 0);
-            H_sync_width         : out std_logic_vector(11 downto 0);
-            V_sync_width         : out std_logic_vector(11 downto 0);
-            H_start              : out std_logic_vector(11 downto 0);
-            V_start              : out std_logic_vector(11 downto 0);
-            H_vsync_active_high  : out std_logic;
-            V_vsync_active_high  : out std_logic;
-            flag_sync_clock      : out std_logic;
-            flag_YCCnRGB         : out std_logic;
-            flag_422n444         : out std_logic;
-            flag_YCC_colour_709  : out std_logic;
-            flag_range_reduced   : out std_logic;
-            flag_interlaced_even : out std_logic;
-            flags_3d_Indicators  : out std_logic_vector(1 downto 0);
-            bits_per_colour      : out std_logic_vector(4 downto 0);
-            stream_channel_count : out std_logic_vector(2 downto 0);
-
-            clk    : in  std_logic;
-            ready  : out std_logic;
-            data   : out std_logic_vector(72 downto 0) := (others => '0')
-        );
-    end component;
-
-    component test_source_800_600_RGB_444_ch2 is
-        port ( 
-            -----------------------------------------------------
-            -- The MSA values (some are range reduced and could 
-            -- be 16 bits ins size)
-            -----------------------------------------------------      
-            M_value              : out std_logic_vector(23 downto 0);
-            N_value              : out std_logic_vector(23 downto 0);
-            H_visible            : out std_logic_vector(11 downto 0);
-            V_visible            : out std_logic_vector(11 downto 0);
-            H_total              : out std_logic_vector(11 downto 0);
-            V_total              : out std_logic_vector(11 downto 0);
-            H_sync_width         : out std_logic_vector(11 downto 0);
-            V_sync_width         : out std_logic_vector(11 downto 0);
-            H_start              : out std_logic_vector(11 downto 0);
-            V_start              : out std_logic_vector(11 downto 0);
-            H_vsync_active_high  : out std_logic;
-            V_vsync_active_high  : out std_logic;
-            flag_sync_clock      : out std_logic;
-            flag_YCCnRGB         : out std_logic;
-            flag_422n444         : out std_logic;
-            flag_YCC_colour_709  : out std_logic;
-            flag_range_reduced   : out std_logic;
-            flag_interlaced_even : out std_logic;
-            flags_3d_Indicators  : out std_logic_vector(1 downto 0);
-            bits_per_colour      : out std_logic_vector(4 downto 0);
-            stream_channel_count : out std_logic_vector(2 downto 0);
-
-            clk    : in  std_logic;
-            ready  : out std_logic;
-            data   : out std_logic_vector(72 downto 0) := (others => '0')
-        );
-    end component;
-
-    component test_source_800_600_RGB_444_ch4 is
-        port ( 
-            -----------------------------------------------------
-            -- The MSA values (some are range reduced and could 
-            -- be 16 bits ins size)
-            -----------------------------------------------------      
-            M_value              : out std_logic_vector(23 downto 0);
-            N_value              : out std_logic_vector(23 downto 0);
-            H_visible            : out std_logic_vector(11 downto 0);
-            V_visible            : out std_logic_vector(11 downto 0);
-            H_total              : out std_logic_vector(11 downto 0);
-            V_total              : out std_logic_vector(11 downto 0);
-            H_sync_width         : out std_logic_vector(11 downto 0);
-            V_sync_width         : out std_logic_vector(11 downto 0);
-            H_start              : out std_logic_vector(11 downto 0);
-            V_start              : out std_logic_vector(11 downto 0);
-            H_vsync_active_high  : out std_logic;
-            V_vsync_active_high  : out std_logic;
-            flag_sync_clock      : out std_logic;
-            flag_YCCnRGB         : out std_logic;
-            flag_422n444         : out std_logic;
-            flag_YCC_colour_709  : out std_logic;
-            flag_range_reduced   : out std_logic;
-            flag_interlaced_even : out std_logic;
-            flags_3d_Indicators  : out std_logic_vector(1 downto 0);
-            bits_per_colour      : out std_logic_vector(4 downto 0);
-            stream_channel_count : out std_logic_vector(2 downto 0);
-
-            clk    : in  std_logic;
-            ready  : out std_logic;
-            data   : out std_logic_vector(72 downto 0) := (others => '0')
-        );
-    end component;
-
-    component insert_main_stream_attrbutes_one_channel is
-        port (
-            clk                  : std_logic;
-            -----------------------------------------------------
-            -- This determines how the MSA is packed
-            -----------------------------------------------------      
-            active               : std_logic;
-            -----------------------------------------------------
-            -- The MSA values (some are range reduced and could 
-            -- be 16 bits ins size)
-            -----------------------------------------------------      
-            M_value              : in std_logic_vector(23 downto 0);
-            N_value              : in std_logic_vector(23 downto 0);
-            H_visible            : in std_logic_vector(11 downto 0);
-            V_visible            : in std_logic_vector(11 downto 0);
-            H_total              : in std_logic_vector(11 downto 0);
-            V_total              : in std_logic_vector(11 downto 0);
-            H_sync_width         : in std_logic_vector(11 downto 0);
-            V_sync_width         : in std_logic_vector(11 downto 0);
-            H_start              : in std_logic_vector(11 downto 0);
-            V_start              : in std_logic_vector(11 downto 0);
-            H_vsync_active_high  : in std_logic;
-            V_vsync_active_high  : in std_logic;
-            flag_sync_clock      : in std_logic;
-            flag_YCCnRGB         : in std_logic;
-            flag_422n444         : in std_logic;
-            flag_YCC_colour_709  : in std_logic;
-            flag_range_reduced   : in std_logic;
-            flag_interlaced_even : in std_logic;
-            flags_3d_Indicators  : in std_logic_vector(1 downto 0);
-            bits_per_colour      : in std_logic_vector(4 downto 0);
-
-            -----------------------------------------------------
-            -- The stream of pixel data coming in and out
-            -----------------------------------------------------
-            in_data              : in  std_logic_vector(72 downto 0);
-            out_data             : out std_logic_vector(72 downto 0));
-    end component;
-
-    signal M_value              : std_logic_vector(23 downto 0);
-    signal N_value              : std_logic_vector(23 downto 0);
-    signal H_visible            : std_logic_vector(11 downto 0);
-    signal V_visible            : std_logic_vector(11 downto 0);
-    signal H_total              : std_logic_vector(11 downto 0);
-    signal V_total              : std_logic_vector(11 downto 0);
-    signal H_sync_width         : std_logic_vector(11 downto 0);
-    signal V_sync_width         : std_logic_vector(11 downto 0);
-    signal H_start              : std_logic_vector(11 downto 0);
-    signal V_start              : std_logic_vector(11 downto 0);
-    signal H_vsync_active_high  : std_logic;
-    signal V_vsync_active_high  : std_logic;
-    signal flag_sync_clock      : std_logic;
-    signal flag_YCCnRGB         : std_logic;
-    signal flag_422n444         : std_logic;
-    signal flag_YCC_colour_709  : std_logic;
-    signal flag_range_reduced   : std_logic;
-    signal flag_interlaced_even : std_logic;
-    signal flags_3d_Indicators  : std_logic_vector(1 downto 0);
-    signal bits_per_colour      : std_logic_vector(4 downto 0);
-
-    component insert_main_stream_attrbutes_two_channels is
-        port (
-            clk                  : std_logic;
-            -----------------------------------------------------
-            -- This determines how the MSA is packed
-            -----------------------------------------------------      
-            active               : std_logic;
-            -----------------------------------------------------
-            -- The MSA values (some are range reduced and could 
-            -- be 16 bits ins size)
-            -----------------------------------------------------      
-            M_value              : in std_logic_vector(23 downto 0);
-            N_value              : in std_logic_vector(23 downto 0);
-            H_visible            : in std_logic_vector(11 downto 0);
-            V_visible            : in std_logic_vector(11 downto 0);
-            H_total              : in std_logic_vector(11 downto 0);
-            V_total              : in std_logic_vector(11 downto 0);
-            H_sync_width         : in std_logic_vector(11 downto 0);
-            V_sync_width         : in std_logic_vector(11 downto 0);
-            H_start              : in std_logic_vector(11 downto 0);
-            V_start              : in std_logic_vector(11 downto 0);
-            H_vsync_active_high  : in std_logic;
-            V_vsync_active_high  : in std_logic;
-            flag_sync_clock      : in std_logic;
-            flag_YCCnRGB         : in std_logic;
-            flag_422n444         : in std_logic;
-            flag_YCC_colour_709  : in std_logic;
-            flag_range_reduced   : in std_logic;
-            flag_interlaced_even : in std_logic;
-            flags_3d_Indicators  : in std_logic_vector(1 downto 0);
-            bits_per_colour      : in std_logic_vector(4 downto 0);
-
-            -----------------------------------------------------
-            -- The stream of pixel data coming in and out
-            -----------------------------------------------------
-            in_data              : in  std_logic_vector(72 downto 0);
-            out_data             : out std_logic_vector(72 downto 0));
-    end component;
-
-    component insert_main_stream_attrbutes_four_channels is
-        port (
-            clk                  : std_logic;
-            -----------------------------------------------------
-            -- This determines how the MSA is packed
-            -----------------------------------------------------      
-            active               : std_logic;
-            -----------------------------------------------------
-            -- The MSA values (some are range reduced and could 
-            -- be 16 bits ins size)
-            -----------------------------------------------------      
-            M_value              : in std_logic_vector(23 downto 0);
-            N_value              : in std_logic_vector(23 downto 0);
-            H_visible            : in std_logic_vector(11 downto 0);
-            V_visible            : in std_logic_vector(11 downto 0);
-            H_total              : in std_logic_vector(11 downto 0);
-            V_total              : in std_logic_vector(11 downto 0);
-            H_sync_width         : in std_logic_vector(11 downto 0);
-            V_sync_width         : in std_logic_vector(11 downto 0);
-            H_start              : in std_logic_vector(11 downto 0);
-            V_start              : in std_logic_vector(11 downto 0);
-            H_vsync_active_high  : in std_logic;
-            V_vsync_active_high  : in std_logic;
-            flag_sync_clock      : in std_logic;
-            flag_YCCnRGB         : in std_logic;
-            flag_422n444         : in std_logic;
-            flag_YCC_colour_709  : in std_logic;
-            flag_range_reduced   : in std_logic;
-            flag_interlaced_even : in std_logic;
-            flags_3d_Indicators  : in std_logic_vector(1 downto 0);
-            bits_per_colour      : in std_logic_vector(4 downto 0);
-
-            -----------------------------------------------------
-            -- The stream of pixel data coming in and out
-            -----------------------------------------------------
-            in_data              : in  std_logic_vector(72 downto 0);
-            out_data             : out std_logic_vector(72 downto 0));
-    end component;
-
-    component idle_pattern_inserter is
-        port ( 
-            clk              : in  std_logic;
-            channel_ready    : in  std_logic;
-            source_ready     : in  std_logic;
-            in_data          : in  std_logic_vector(72 downto 0);
-            out_data         : out std_logic_vector(71 downto 0)
-        );
-    end component;    
-    
-    component scrambler_reset_inserter is
-        port ( 
-            clk      : in  std_logic;
-            in_data  : in  std_logic_vector(71 downto 0);
-            out_data : out std_logic_vector(71 downto 0)
-        );
-    end component;
-    
-    component scrambler is
-        port ( 
-            clk        : in  std_logic;
-            bypass0    : in  std_logic;
-            bypass1    : in  std_logic; 
-            in_data    : in  std_logic_vector(17 downto 0);
-            out_data   : out std_logic_vector(17 downto 0)
-        );
-    end component;
-    
-    component data_to_8b10b is
-        port ( 
-            clk      : in  std_logic;
-            forceneg : in  std_logic_vector(1 downto 0);
-            in_data  : in  std_logic_vector(17 downto 0);
-            out_data : out std_logic_vector(19 downto 0)
-        );
-    end component;
-
-    component link_signal_mgmt is
-        Port ( mgmt_clk    : in  STD_LOGIC;
-
-               tx_powerup  : in  STD_LOGIC;  -- Used to reset
-            
-               status_de   : in  std_logic;
-               adjust_de   : in  std_logic;
-               addr        : in  std_logic_vector(7 downto 0);
-	  	       data        : in  std_logic_vector(7 downto 0);
-
-               sink_channel_count   : in  std_logic_vector(2 downto 0);
-               source_channel_count : in  std_logic_vector(2 downto 0);
-               stream_channel_count : in  std_logic_vector(2 downto 0);
-               active_channel_count : out std_logic_vector(2 downto 0);
-
-               powerup_channel : out std_logic_vector(3 downto 0);
-
-               clock_locked   : out STD_LOGIC;
-               equ_locked     : out STD_LOGIC;
-               symbol_locked  : out STD_LOGIC;
-               align_locked   : out STD_LOGIC;
-        
-               preemp_0p0  : out STD_LOGIC;
-               preemp_3p5  : out STD_LOGIC;
-               preemp_6p0  : out STD_LOGIC;
-        
-               swing_0p4   : out STD_LOGIC;
-               swing_0p6   : out STD_LOGIC;
-               swing_0p8   : out STD_LOGIC);
-    end component;
-    
     component Transceiver is
     generic( use_hw_8b10b_support : std_logic);
     Port ( mgmt_clk        : in  STD_LOGIC;
            powerup_channel : in  STD_LOGIC_vector;
            debug           : out std_logic_vector(7 downto 0);
-
-           gclk27          : in  STD_LOGIC;
 
            preemp_0p0      : in  STD_LOGIC;
            preemp_3p5      : in  STD_LOGIC;
@@ -457,114 +144,6 @@ architecture Behavioral of top_level is
            gtptxn         : out std_logic_vector(3 downto 0));
     end component;
 
-    component aux_channel is
-		port ( 
-		   clk                 : in    std_logic;
-		   debug_pmod          : out   std_logic_vector(7 downto 0);
-		   ------------------------------
-           edid_de             : out   std_logic;
-           dp_reg_de           : out   std_logic;
-           adjust_de           : out   std_logic;
-           status_de           : out   std_logic;
-           aux_addr            : out   std_logic_vector(7 downto 0);
-		   aux_data            : out   std_logic_vector(7 downto 0);
-		   ------------------------------
-           link_count          : in    std_logic_vector(2 downto 0);           
-		   ------------------------------
-		   -- Hot plug signals
-           hpd_irq             : in std_logic;
-           hpd_present         : in std_logic;
-
-		   ------------------------------
-		   swing_0p4           : in    std_logic;
-           swing_0p6           : in    std_logic;
-           swing_0p8           : in    std_logic;
-           preemp_0p0          : in    STD_LOGIC;
-           preemp_3p5          : in    STD_LOGIC;
-           preemp_6p0          : in    STD_LOGIC;
-           clock_locked        : in    STD_LOGIC;
-           equ_locked          : in    STD_LOGIC;
-           symbol_locked       : in    STD_LOGIC;
-           align_locked        : in    STD_LOGIC;
-		   ------------------------------
-           tx_powerup          : out   std_logic := '0';
-           tx_clock_train      : out   std_logic := '0';
-           tx_align_train      : out   std_logic := '0';
-           tx_link_established : out   std_logic := '0';
-		   ------------------------------
-		   dp_tx_hp_detect : in    std_logic;
-           dp_tx_aux_p     : inout std_logic;
-           dp_tx_aux_n     : inout std_logic;
-           dp_rx_aux_p     : inout std_logic;
-           dp_rx_aux_n     : inout std_logic
-		);
-    end component;
-
-    component edid_decode is
-       port ( clk              : in std_logic;
-    
-              edid_de          : in std_logic;
-              edid_data        : in std_logic_vector(7 downto 0);
-              edid_addr        : in std_logic_vector(7 downto 0);
-              invalidate       : in std_logic;
-    
-              valid            : out std_logic := '0';
-    
-              support_RGB444   : out std_logic := '0';
-              support_YCC444   : out std_logic := '0';
-              support_YCC422   : out std_logic := '0';
-    
-              pixel_clock_x10k : out std_logic_vector(15 downto 0) := (others => '0');
-    
-              h_visible_len    : out std_logic_vector(11 downto 0) := (others => '0');
-              h_blank_len      : out std_logic_vector(11 downto 0) := (others => '0');
-              h_front_len      : out std_logic_vector(11 downto 0) := (others => '0');
-              h_sync_len       : out std_logic_vector(11 downto 0) := (others => '0');
-    
-              v_visible_len    : out std_logic_vector(11 downto 0) := (others => '0');
-              v_blank_len      : out std_logic_vector(11 downto 0) := (others => '0');
-              v_front_len      : out std_logic_vector(11 downto 0) := (others => '0');
-              v_sync_len       : out std_logic_vector(11 downto 0) := (others => '0');
-              interlaced       : out std_logic := '0');
-    end component;
-
-    component dp_register_decode is
-       port ( clk         : in std_logic;
-    
-              de          : in std_logic;
-              data        : in std_logic_vector(7 downto 0);
-              addr        : in std_logic_vector(7 downto 0);
-              invalidate  : in std_logic;
-    
-              valid              : out std_logic := '0';
-     
-              revision           : out std_logic_vector(7 downto 0) := (others => '0');
-              link_rate_2_70     : out std_logic := '0';
-              link_rate_1_62     : out std_logic := '0';
-              extended_framing   : out std_logic := '0';
-              link_count         : out std_logic_vector(3 downto 0) := (others => '0');
-              max_downspread     : out std_logic_vector(7 downto 0) := (others => '0');
-              coding_supported   : out std_logic_vector(7 downto 0) := (others => '0');
-              port0_capabilities : out std_logic_vector(15 downto 0) := (others => '0');
-              port1_capabilities : out std_logic_vector(15 downto 0) := (others => '0');
-              norp               : out std_logic_vector(7 downto 0) := (others => '0')
-        );
-    end component;
-
-    component training_and_channel_delay is
-    port (
-        clk                : in  std_logic;
-        channel_delay      : in  std_logic_vector(1 downto 0);
-        clock_train        : in  std_logic;
-        align_train        : in  std_logic;
-
-        in_data            : in  std_logic_vector(17 downto 0);
-        out_data           : out std_logic_vector(17 downto 0);
-        out_data0forceneg  : out std_logic;
-        out_data1forceneg  : out std_logic
-    );
-    end component;
-
     component video_generator is
     Port (  clk              : in  STD_LOGIC;
             h_visible_len    : in  std_logic_vector(11 downto 0) := (others => '0');
@@ -581,55 +160,10 @@ architecture Behavioral of top_level is
             vid_hsync        : out STD_LOGIC;
             vid_vsync        : out STD_LOGIC);
     end component;
-
-    signal edid_de          : std_logic;
-    signal dp_reg_de        : std_logic;
-    signal adjust_de        : std_logic;
-    signal status_de        : std_logic;
-    signal aux_data         : std_logic_vector(7 downto 0);
-    signal aux_addr         : std_logic_vector(7 downto 0);
-    signal invalidate       : std_logic;
-    
-    
-    signal support_RGB444   : std_logic := '0';
-    signal support_YCC444   : std_logic := '0';
-    signal support_YCC422   : std_logic := '0';
-    
-    --------------------------------------------
-    -- EDID data
-    ---------------------------------------------
-    signal edid_valid       : std_logic := '0';
-    signal pixel_clock_x10k : std_logic_vector(15 downto 0) := (others => '0');
-    
-    signal h_visible_len    : std_logic_vector(11 downto 0) := (others => '0');
-    signal h_blank_len      : std_logic_vector(11 downto 0) := (others => '0');
-    signal h_front_len      : std_logic_vector(11 downto 0) := (others => '0');
-    signal h_sync_len       : std_logic_vector(11 downto 0) := (others => '0');
-    
-    signal v_visible_len    : std_logic_vector(11 downto 0) := (others => '0');
-    signal v_blank_len      : std_logic_vector(11 downto 0) := (others => '0');
-    signal v_front_len      : std_logic_vector(11 downto 0) := (others => '0');
-    signal v_sync_len       : std_logic_vector(11 downto 0) := (others => '0');
-    signal interlaced       : std_logic := '0';
-    --------------------------------------------
-    -- Display port data
-    ---------------------------------------------
-    signal dp_valid              : std_logic := '0';
-    signal dp_revision           : std_logic_vector(7 downto 0) := (others => '0');
-    signal dp_link_rate_2_70     : std_logic := '0';
-    signal dp_link_rate_1_62     : std_logic := '0';
-    signal dp_extended_framing   : std_logic := '0';
-    signal dp_link_count         : std_logic_vector(3 downto 0) := (others => '0');
-    signal dp_max_downspread     : std_logic_vector(7 downto 0) := (others => '0');
-    signal dp_coding_supported   : std_logic_vector(7 downto 0) := (others => '0');
-    signal dp_port0_capabilities : std_logic_vector(15 downto 0) := (others => '0');
-    signal dp_port1_capabilities : std_logic_vector(15 downto 0) := (others => '0');
-    signal dp_norp               : std_logic_vector(7 downto 0) := (others => '0');
     --------------------------------------------------------------------------
     signal tx_powerup       : std_logic := '0';
     signal tx_clock_train   : std_logic := '0';
     signal tx_align_train   : std_logic := '0';    
-    signal data_channel_0   : std_logic_vector(19 downto 0):= (others => '0');
 
     ---------------------------------------------
     -- Transceiver signals
@@ -639,342 +173,105 @@ architecture Behavioral of top_level is
     signal symbolclk        : std_logic := '0';
     
     signal tx_running       : std_logic_vector(3 downto 0) := (others => '0');
-
-    signal powerup_channel : std_logic_vector(3 downto 0);
-    signal clock_locked    : std_logic := '0';
-    signal equ_locked      : std_logic := '0';
-    signal symbol_locked   : std_logic := '0';
-    signal align_locked    : std_logic := '0';
+    signal tx_powerup_channel  : std_logic_vector(3 downto 0);
     
-    signal preemp_0p0      : std_logic := '1';
-    signal preemp_3p5      : STD_LOGIC := '0';
-    signal preemp_6p0      : STD_LOGIC := '0';
+    signal tx_preemp_0p0    : std_logic := '1';
+    signal tx_preemp_3p5    : STD_LOGIC := '0';
+    signal tx_preemp_6p0    : STD_LOGIC := '0';
            
-    signal swing_0p4       : STD_LOGIC := '1';
-    signal swing_0p6       : STD_LOGIC := '0';
-    signal swing_0p8       : STD_LOGIC := '0';
+    signal tx_swing_0p4     : STD_LOGIC := '1';
+    signal tx_swing_0p6     : STD_LOGIC := '0';
+    signal tx_swing_0p8     : STD_LOGIC := '0';
 
     ------------------------------------------------
     signal tx_link_established : std_logic := '0';
     ------------------------------------------------
-    signal interface_debug : std_logic_vector(7 downto 0);
     signal tx_debug        : std_logic_vector(7 downto 0);
+    signal mgmt_debug:std_logic_vector(7 downto 0);
    
-    signal sink_channel_count   : std_logic_vector(2 downto 0) := "000";
     signal source_channel_count : std_logic_vector(2 downto 0) := "100";
-    signal active_channel_count : std_logic_vector(2 downto 0) := "000";
     signal stream_channel_count : std_logic_vector(2 downto 0) := "000";
-
-    signal test_signal : std_logic_vector(8 downto 0);
-
-    signal scramble_bypass        : std_logic;
     signal test_signal_ready      : std_logic;
     
-    signal test_signal_data    : std_logic_vector(72 downto 0) := (others => '0');  -- With switching point
     signal msa_merged_data     : std_logic_vector(72 downto 0) := (others => '0');  -- With switching point
-    signal signal_data         : std_logic_vector(71 downto 0) := (others => '0');
-    signal sr_inserted_data    : std_logic_vector(71 downto 0) := (others => '0');    
-    signal scrambled_data      : std_logic_vector(71 downto 0) := (others => '0');
-    signal final_data          : std_logic_vector(71 downto 0) := (others => '0');
-    signal force_parity_neg    : std_logic_vector( 7 downto 0) := (others => '0');
-    signal symbols             : std_logic_vector(79 downto 0) := (others => '0');
-    
-    signal hpd_irq     : std_logic;
-    signal hpd_present : std_logic;
+    signal tx_symbols          : std_logic_vector(79 downto 0) := (others => '0');
 
     constant BE     : std_logic_vector(8 downto 0) := "111111011";   -- K27.7
     constant BS     : std_logic_vector(8 downto 0) := "110111100";   -- K28.5
     constant SR     : std_logic_vector(8 downto 0) := "100011100";   -- K28.0
 
-    constant delay_index : std_logic_vector(7 downto 0) := "11100100"; -- 3,2,1,0 for use as a lookup table in the generate loop
-    signal count : unsigned(15 downto 0) := (others => '0');
-   signal toggle : std_logic := '0';
 begin
-    sink_channel_count <= dp_link_count(2 downto 0);
+--   sink_channel_count <= dp_link_count(2 downto 0);
 
-i_hotplug_decode: hotplug_decode port map (
-        clk     => gclk,
-        hpd     => hpd_j8,
-        irq     => hpd_irq,
-        present => hpd_present);
+i_channel_management: channel_management PORT MAP(
+		clk100               => gclk,
+      debug                => mgmt_debug,
+		hpd                  => hpd_j8,
+		aux_tx_p             => aux_j8_aux_tx_p,
+		aux_tx_n             => aux_j8_aux_tx_n,
+		aux_rx_p             => aux_j8_aux_rx_p,
+		aux_rx_n             => aux_j8_aux_rx_n,
+		stream_channel_count => stream_channel_count,
+		source_channel_count => source_channel_count,
+		tx_clock_train       => tx_clock_train,
+		tx_align_train       => tx_align_train,
+		tx_powerup_channel   => tx_powerup_channel,
+		tx_preemp_0p0        => tx_preemp_0p0,
+		tx_preemp_3p5        => tx_preemp_3p5,
+		tx_preemp_6p0        => tx_preemp_6p0,
+		tx_swing_0p4         => tx_swing_0p4,
+		tx_swing_0p6         => tx_swing_0p6,
+		tx_swing_0p8         => tx_swing_0p8,
+		tx_running           => tx_running,
+      tx_link_established  => tx_link_established
+	);
 
-i_aux_channel: aux_channel port map ( 
-		   clk             => gclk,
-		   debug_pmod      => interface_debug,
-		   ------------------------------
-         edid_de         => edid_de,
-         dp_reg_de       => dp_reg_de,
-         adjust_de       => adjust_de,
-         status_de       => status_de,
-         aux_addr        => aux_addr,
-		   aux_data        => aux_data,
-		   ------------------------------
-		   link_count      => active_channel_count,
-         hpd_irq         => hpd_irq,
-         hpd_present     => hpd_present,
-		   ------------------------------
-         preemp_0p0      => preemp_0p0, 
-         preemp_3p5      => preemp_3p5,
-         preemp_6p0      => preemp_6p0,           
-         swing_0p4       => swing_0p4,
-         swing_0p6       => swing_0p6,
-         swing_0p8       => swing_0p8,
-          
-         clock_locked    => clock_locked,
-         equ_locked      => equ_locked,
-         symbol_locked   => symbol_locked,
-         align_locked    => align_locked,
-           
-		   ------------------------------
-           tx_powerup          => tx_powerup,
-           tx_clock_train      => tx_clock_train,
-           tx_align_train      => tx_align_train,
-           tx_link_established => tx_link_established,
-		   ------------------------------
-		     dp_tx_hp_detect => hpd_j8,
-           dp_tx_aux_p     => aux_j8_aux_tx_p,
-           dp_tx_aux_n     => aux_j8_aux_tx_n,
-           dp_rx_aux_p     => aux_j8_aux_rx_p,
-           dp_rx_aux_n     => aux_j8_aux_rx_n
-		);
-
-
-i_edid_decode: edid_decode port map ( 
-           clk              => gclk,    
-           edid_de          => edid_de,
-           edid_addr        => aux_addr,
-           edid_data        => aux_data,
-           invalidate       => '0',
-    
-           valid            => edid_valid,
-    
-           support_RGB444   => support_RGB444,
-           support_YCC444   => support_YCC444,
-           support_YCC422   => support_YCC422,
-    
-           pixel_clock_x10k => pixel_clock_x10k,
-    
-           h_visible_len    => h_visible_len,
-           h_blank_len      => h_blank_len,
-           h_front_len      => h_front_len,
-           h_sync_len       => h_sync_len,
-    
-           v_visible_len    => v_visible_len,
-           v_blank_len      => v_blank_len,
-           v_front_len      => v_front_len,
-           v_sync_len       => v_sync_len,
-           interlaced       => interlaced);
-
-i_dp_reg_decode: dp_register_decode port map ( 
-            clk                => gclk,
-            de                 => dp_reg_de,
-            addr               => aux_addr,
-            data               => aux_data,
-            invalidate         => '0',
-            valid              => dp_valid,
-            
-            revision           => dp_revision,
-            link_rate_2_70     => dp_link_rate_2_70,
-            link_rate_1_62     => dp_link_rate_1_62,
-            extended_framing   => dp_extended_framing,
-            link_count         => dp_link_count,
-            max_downspread     => dp_max_downspread,
-            coding_supported   => dp_coding_supported,
-            port0_capabilities => dp_port0_capabilities,
-            port1_capabilities => dp_port1_capabilities,
-            norp               => dp_norp
-       );
-
-i_link_signal_mgmt:  link_signal_mgmt Port map (
-        mgmt_clk        => gclk,
-
-        tx_powerup      => tx_powerup, 
-        
-        status_de       => status_de,
-        adjust_de       => adjust_de,
-        addr            => aux_addr,
-        data            => aux_data,
-
-        sink_channel_count   => sink_channel_count,
-        source_channel_count => source_channel_count,
-        active_channel_count => active_channel_count,
-        stream_channel_count => stream_channel_count,
-
-        powerup_channel => powerup_channel,
-
-        clock_locked    => clock_locked,
-        equ_locked      => equ_locked,
-        symbol_locked   => symbol_locked,
-        align_locked    => align_locked,
-
-        preemp_0p0      => preemp_0p0, 
-        preemp_3p5      => preemp_3p5,
-        preemp_6p0      => preemp_6p0,
-            
-        swing_0p4       => swing_0p4,
-        swing_0p6       => swing_0p6,
-        swing_0p8       => swing_0p8);
-
---i_test_source: test_source_3840_2160_YCC_422_ch2  port map ( 
---i_test_source: test_source_800_600_RGB_444_ch1  port map ( 
---i_test_source: test_source_800_600_RGB_444_ch2  port map ( 
-i_test_source: test_source_800_600_RGB_444_ch4  port map ( 
-            M_value              => M_value,
-            N_value              => N_value,
-            
-            H_visible            => H_visible,
-            H_total              => H_total,
-            H_sync_width         => H_sync_width,
-            H_start              => H_start,    
-            
-            V_visible            => V_visible,
-            V_total              => V_total,
-            V_sync_width         => V_sync_width,
-            V_start              => V_start,
-            H_vsync_active_high  => H_vsync_active_high,
-            V_vsync_active_high  => V_vsync_active_high,
-            flag_sync_clock      => flag_sync_clock,
-            flag_YCCnRGB         => flag_YCCnRGB,
-            flag_422n444         => flag_422n444,
-            flag_range_reduced   => flag_range_reduced,
-            flag_interlaced_even => flag_interlaced_even,
-            flag_YCC_colour_709  => flag_YCC_colour_709,
-            flags_3d_Indicators  => flags_3d_Indicators,
-            bits_per_colour      => bits_per_colour, 
-            stream_channel_count => stream_channel_count,
-
-            clk          => symbolclk,
-            ready        => test_signal_ready,
-            data         => test_signal_data
-        );
-
---i_insert_main_stream_attrbutes_one_channel: insert_main_stream_attrbutes_one_channel port map (
---i_insert_main_stream_attrbutes_two_channels: insert_main_stream_attrbutes_two_channels port map (
-i_insert_main_stream_attrbutes_four_channels: insert_main_stream_attrbutes_four_channels port map (
+i_test_source: test_source port map (
             clk                  => symbolclk,
-            active               => '1',
-            -----------------------------------------------------
-            -- The MSA values (some are range reduced and could 
-            -- be 16 bits ins size)
-            -----------------------------------------------------      
-            M_value              => M_value,
-            N_value              => N_value,
-
-            H_visible            => H_visible,
-            H_total              => H_total,
-            H_sync_width         => H_sync_width,
-            H_start              => H_start,    
-     
-            V_visible            => V_visible,
-            V_total              => V_total,
-            V_sync_width         => V_sync_width,
-            V_start              => V_start,
-            H_vsync_active_high  => H_vsync_active_high,
-            V_vsync_active_high  => V_vsync_active_high,
-            flag_sync_clock      => flag_sync_clock,
-            flag_YCCnRGB         => flag_YCCnRGB,
-            flag_422n444         => flag_422n444,
-            flag_range_reduced   => flag_range_reduced,
-            flag_interlaced_even => flag_interlaced_even,
-            flag_YCC_colour_709  => flag_YCC_colour_709,
-            flags_3d_Indicators  => flags_3d_Indicators,
-            bits_per_colour      => bits_per_colour, 
-            -----------------------------------------------------
-            -- The stream of pixel data coming in
-            -----------------------------------------------------
-            in_data              => test_signal_data,
-            -----------------------------------------------------
-            -- The stream of pixel data going out
-            -----------------------------------------------------
-            out_data             => msa_merged_data
+            stream_channel_count => stream_channel_count,
+            ready                => test_signal_ready,
+            data                 => msa_merged_data
         );
-
-
-i_idle_pattern_inserter: idle_pattern_inserter  port map ( 
-            clk              => symbolclk,
-            channel_ready    => tx_link_established,
-            source_ready     => test_signal_ready,
-            
-            in_data          => msa_merged_data,
-            out_data         => signal_data
-        );
-
-i_scrambler_reset_inserter: scrambler_reset_inserter
-        port map ( 
-            clk       => symbolclk,
-            in_data   => signal_data,
-            out_data  => sr_inserted_data
-        );
-
-g_per_channel: for i in 0 to 3 generate  -- lnk_j8_lane_p'high
-
-i_scrambler:  scrambler
-        port map ( 
-            clk        => symbolclk,
-            bypass0    => '0',
-            bypass1    => '0',
-            in_data    => sr_inserted_data(17+i*18 downto 0+i*18),
-            out_data   => scrambled_data(17+i*18 downto 0+i*18)
-        );
-
-i_train_channel: training_and_channel_delay port map (
-        clk               => symbolclk,
-
-        channel_delay     => delay_index(1+i*2 downto 0+i*2),
-        clock_train       => tx_clock_train,
-        align_train       => tx_align_train, 
-        
-        in_data           => scrambled_data(17+i*18 downto 0+i*18),
-        out_data          => final_data(17+i*18 downto 0+i*18),
-        out_data0forceneg => force_parity_neg(0+i*2),
-        out_data1forceneg => force_parity_neg(1+i*2)
-    );
-
-   ----------------------------------------------
-   -- Soft 8b/10b encoder
-   ----------------------------------------------
-g2: if use_hw_8b10b_support = '0' generate
-i_data_to_8b10b: data_to_8b10b port map ( 
-        clk      => symbolclk,
-        in_data  => final_data(17+i*18 downto 0+i*18),
-        out_data => symbols(19+i*20 downto 0+i*20),
-        forceneg => force_parity_neg(1+i*2 downto 0+i*2)
-        );
-    end generate;
-g3: if use_hw_8b10b_support = '1' generate
-      symbols(19+i*20 downto 0+i*20) <= force_parity_neg(1+i*2) & final_data(17+i*18 downto 9+i*18) &
-                                        force_parity_neg(0+i*2) & final_data( 8+i*18 downto 0+i*18);
-    end generate;
-    end generate;  --- For FOR GENERATE loop
+    
 
 ----------------------------------------------------------------------
+Inst_main_stream_processing: main_stream_processing generic map (
+      use_hw_8b10b_support => use_hw_8b10b_support
+   ) PORT MAP(
+		symbol_clk          => symbolclk,
+		tx_link_established => tx_link_established,
+		source_ready        => test_signal_ready,
+		tx_clock_train      => tx_clock_train,
+		tx_align_train      => tx_align_train,
+		in_data             => msa_merged_data,
+		tx_symbols          => tx_symbols
+	);
 
 i_tx0: Transceiver generic map (
       use_hw_8b10b_support => use_hw_8b10b_support
    ) Port map ( 
        mgmt_clk        => gclk,
-       powerup_channel => powerup_channel,
+       powerup_channel => tx_powerup_channel,
        tx_running      => tx_running,
        debug           => tx_debug,
-       gclk27          => gclk27,
 
-       preemp_0p0      => preemp_0p0, 
-       preemp_3p5      => preemp_3p5,
-       preemp_6p0      => preemp_6p0,
+       preemp_0p0      => tx_preemp_0p0, 
+       preemp_3p5      => tx_preemp_3p5,
+       preemp_6p0      => tx_preemp_6p0,
            
-       swing_0p4       => swing_0p4,
-       swing_0p6       => swing_0p6,
-       swing_0p8       => swing_0p8,
+       swing_0p4       => tx_swing_0p4,
+       swing_0p6       => tx_swing_0p6,
+       swing_0p8       => tx_swing_0p8,
 
-       in_symbols      => symbols,
+       in_symbols      => tx_symbols,
                   
        gtptxp          => lnk_j8_lane_p,
        gtptxn          => lnk_j8_lane_n,
        symbolclk       => symbolclk);       
 
---   debug(0) <= tx_link_established; 
-     debug(0) <= interface_debug(0);
---   debug(0) <= tx_debug(0); -- PLL0 status
+--    debug(0) <= tx_link_established; 
+    debug(0) <= mgmt_debug(0);
+--   debug(0) <= tx_clock_train;
 
    
 --process(symbolclk)
@@ -1010,5 +307,4 @@ i_tx0: Transceiver generic map (
 --         end case;
 --      end if;
 --   end process;
-
 end Behavioral;
