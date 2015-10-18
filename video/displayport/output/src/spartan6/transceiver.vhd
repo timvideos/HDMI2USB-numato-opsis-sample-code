@@ -465,13 +465,11 @@ g_hard_8b10b: if use_hw_8b10b_support  = '1' generate
     -- First channel
     txdata_for_tx0( 7 downto 0) <= in_symbols( 7 downto 0);
     is_kchar_tx0(0)             <= in_symbols( 8);
-    txchardispval0(0)           <= in_symbols( 9);
-    txchardispmode0(0)          <= '0';
+    txchardispmode0(0)          <= in_symbols( 9);
 
     txdata_for_tx0(15 downto 8) <= in_symbols(17 downto 10);
     is_kchar_tx0(1)             <= in_symbols(18);
-    txchardispval0(1)           <= in_symbols(19);
-    txchardispmode0(1)          <= '0';
+    txchardispmode0(1)          <= in_symbols(19);
 
     -- Second channel
     txdata_for_tx1( 7 downto 0) <= in_symbols(27 downto 20);
