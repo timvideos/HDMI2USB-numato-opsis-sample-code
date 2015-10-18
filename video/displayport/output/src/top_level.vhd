@@ -71,7 +71,7 @@ entity top_level is
 end top_level;
 
 architecture Behavioral of top_level is
-   constant use_hw_8b10b_support : std_logic := '1';
+   constant use_hw_8b10b_support : std_logic := '0';
 
 	COMPONENT channel_management
 	PORT(

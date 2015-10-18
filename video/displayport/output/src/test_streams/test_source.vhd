@@ -375,8 +375,8 @@ begin
 --i_test_source: test_source_3840_2160_YCC_422_ch2  port map ( 
 --i_test_source: test_source_800_600_RGB_444_ch1  port map ( 
 --i_test_source: test_source_800_600_RGB_444_ch2  port map ( 
---i_test_source: test_source_800_600_RGB_444_ch4  port map ( 
-i_test_source: test_source_800_600_RGB_444_colourbars_ch1 port map (
+i_test_source: test_source_800_600_RGB_444_ch4  port map ( 
+--i_test_source: test_source_800_600_RGB_444_colourbars_ch1 port map (
             M_value              => M_value,
             N_value              => N_value,
             
@@ -406,9 +406,9 @@ i_test_source: test_source_800_600_RGB_444_colourbars_ch1 port map (
             data         => raw_data
         );
 
-i_insert_main_stream_attrbutes_one_channel: insert_main_stream_attrbutes_one_channel port map (
+--i_insert_main_stream_attrbutes_one_channel: insert_main_stream_attrbutes_one_channel port map (
 --i_insert_main_stream_attrbutes_two_channels: insert_main_stream_attrbutes_two_channels port map (
---i_insert_main_stream_attrbutes_four_channels: insert_main_stream_attrbutes_four_channels port map (
+i_insert_main_stream_attrbutes_four_channels: insert_main_stream_attrbutes_four_channels port map (
             clk                  => clk,
             active               => '1',
             -----------------------------------------------------
