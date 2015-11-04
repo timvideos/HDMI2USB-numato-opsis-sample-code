@@ -39,6 +39,6 @@ FOSS Cores:
 * [USB2.0 High-Speed Device Interface for Altera SOPC Builder](http://www.vreelin.com/altera/usbusermanual_altera.pdf) from Vreelin Engineering
 * [USB2 High-Speed Device Interface for Xilinx EDK](http://www.vreelin.com/usbusermanual-xilinxpdf.pdf) from Vreelin Engineering
 * [USB 2.0 Device Only IP Core](http://www.hitechglobal.com/IPCores/usbdevice.htm) - interfaces with Wishbone
-* [USB2.0 On-The-Go Controller Core] from CAST/Actel](http://www.actel.com/ipdocs/cast_usbhs-otg-sd-ac_DS.pdf)
+* [USB2.0 On-The-Go Controller Core from CAST/Actel](http://www.actel.com/ipdocs/cast_usbhs-otg-sd-ac_DS.pdf)
 * [USB Hi-Speed On-The-Go Controller for Multiple Peripheral Devices Core](http://www.cast-inc.com/ip-cores/interfaces/usbhs-otg-mpd/index.html) from CAST, Inc.
 
