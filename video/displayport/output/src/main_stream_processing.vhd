@@ -178,21 +178,24 @@ i_skew_channels: skew_channels port map (
         out_data          => final_data
     );
 
-g_per_channel: for i in 0 to 3 generate  -- lnk_j8_lane_p'high
    ----------------------------------------------
    -- Soft 8b/10b encoder
    ----------------------------------------------
 g2: if use_hw_8b10b_support = '0' generate
+g_per_channel: for i in 0 to 3 generate  -- lnk_j8_lane_p'high
 i_data_to_8b10b: data_to_8b10b port map ( 
         clk      => symbol_clk,
         in_data  => final_data(19+i*20 downto 0+i*20),
         out_data => tx_symbols(19+i*20 downto 0+i*20));
+      end generate;
     end generate;
     
+   ----------------------------------------------
+   -- Using hardware 8b/10b encoder
+   ----------------------------------------------
 g3: if use_hw_8b10b_support = '1' generate
       tx_symbols <= final_data;
     end generate;
-    end generate;  --- For FOR GENERATE loop
 
 end Behavioral;
 

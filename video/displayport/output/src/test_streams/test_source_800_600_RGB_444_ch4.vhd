@@ -136,9 +136,9 @@ architecture arch of test_source_800_600_RGB_444_ch4 is
 
     --- Block 2 - 8 white pixels and padding, VB-ID (-vsync), Mvid, MAud and junk
     PIX_80, PIX_80, PIX_80, PIX_80, PIX_80, PIX_80, 
-    BS,     VB_NVS,  MVID,   MAUD,  VB_NVS, MVID,  
-    MAUD,   VB_NVS,  MVID,   MAUD,  VB_NVS, MVID,      
-    MAUD,   DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    BS,     VB_NVS,  MVID,   MAUD,  DUMMY,  DUMMY, 
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
+    DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
@@ -148,7 +148,7 @@ architecture arch of test_source_800_600_RGB_444_ch4 is
 
     --- Block 3 - 8 white pixels and padding, VB-ID (+vsync), Mvid, MAud and junk
     PIX_80, PIX_80, PIX_80, PIX_80, PIX_80, PIX_80, 
-    BS,     VB_VS,  MVID,   MAUD,   VB_VS,  MVID,  
+    BS,     VB_VS,  MVID,   MAUD,   DUMMY,  DUMMY, 
     MAUD,   DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
     DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY,  DUMMY, 
@@ -160,8 +160,8 @@ architecture arch of test_source_800_600_RGB_444_ch4 is
 
     --- Block 4 - DUMMY,Blank Start, VB-ID (+vsync), Mvid, MAud and junk
     DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
-    BS,    VB_VS, MVID,  MAUD,  VB_VS, MVID,  
-    MAUD,  DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
+    BS,    VB_VS, MVID,  MAUD,  DUMMY, DUMMY, 
+    DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
     DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
     DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, 
     DUMMY, DUMMY, DUMMY, DUMMY, DUMMY, DUMMY,
