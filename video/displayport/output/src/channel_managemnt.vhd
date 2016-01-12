@@ -64,8 +64,8 @@ entity channel_management is
            aux_rx_n : inout std_logic;
 
            -- Datapath requirements
-           stream_channel_count : std_logic_vector(2 downto 0);
-           source_channel_count : std_logic_vector(2 downto 0);
+           stream_channel_count : in std_logic_vector(2 downto 0);
+           source_channel_count : in std_logic_vector(2 downto 0);
 
            -- Datapath control
            tx_clock_train        : out  std_logic;
