@@ -1,18 +1,14 @@
 
-[![CrowdSupply Image](http://planet.timvideos.us/numato-opsis-crowdfunding-campaign-master/badge.png)](https://www.crowdsupply.com/numato-lab/opsis)
-
 The <a href="http://hdmi2usb.tv/numato-opsis">Numato Opsis</a>, the first open hardware for the
 <a href="http://hdmi2usb.tv">HDMI2USB firmware</a>,
-<a href="https://www.crowdsupply.com/numato-lab/opsis">can now be ordered on 
- ![CrowdSupply](https://www.crowdsupply.com/_teal/images/crowd-supply-logo-dark.png)
-</a>
+<a href="https://numato.com/product/numato-opsis-fpga-based-open-video-platform">can now be ordered from Numato Labs.</a>
 
 Sample code for the Numato Opsis Board
 ======================================
 
 The [Numato](http://numato.com) Opsis board is the first [HDMI2USB](http://hdmi2usb.tv)
 production board developed in conjugation with the
-[TimVideos.us](http://code.timvideos.us) project. 
+[TimVideos.us](http://code.timvideos.us) project.
 
 It's features include;
  * 2 x HDMI input ports,
